@@ -19,6 +19,7 @@ import com.autovend.devices.AbstractDevice;
 import com.autovend.devices.BillDispenser;
 import com.autovend.devices.BillSlot;
 import com.autovend.devices.BillValidator;
+import com.autovend.devices.ReceiptPrinter;
 import com.autovend.devices.observers.AbstractDeviceObserver;
 import com.autovend.devices.observers.BillSlotObserver;
 import com.autovend.devices.observers.BillValidatorObserver;
@@ -38,6 +39,8 @@ public class PaymentControllerLogic implements BillSlotObserver, BillValidatorOb
 	private int[] denominations;
 	private Map<Integer, BillDispenser> dispensers;
 	private int maxDenom;
+	private int minDenom;
+	private ReceiptPrinter printer;
 	
 	/**
 	 * Constructor. Takes a Self-Checkout Station  and initializes
@@ -57,7 +60,9 @@ public class PaymentControllerLogic implements BillSlotObserver, BillValidatorOb
 		this.denominations = station.billDenominations;
 		Arrays.sort(this.denominations);
 		this.maxDenom = Arrays.stream(this.denominations).max().getAsInt();
+		this.minDenom = Arrays.stream(this.denominations).min().getAsInt();
 		this.dispensers = station.billDispensers;
+		this.printer = station.printer;
 		for (int value : this.denominations) {
 			this.dispensers.get(value).register(this);
 		}
@@ -129,13 +134,17 @@ public class PaymentControllerLogic implements BillSlotObserver, BillValidatorOb
 	 * change left) and then if the dispenser is empty or not. If both conditions are met, 
 	 * it dispenses. If not, it finds the next best denomination before dispensing.
 	 * This is broadly tackling use-case scenario 7
+	 * 
+	 * Question: Given that we can only give change in bills, do we over or underpay change?
 	 */
 	public void dispenseChange() {
 		int nextValue;
 		BillDispenser dispenser;
 		for(int value : denominations) {
 			dispenser = dispensers.get(value);
-			if((value < this.getChangeDue())&&(dispenser.size() > 0)) {
+			/** If the value of the bill is less than or equal to the change, and the dispenser is not empty */
+			if((value <= this.getChangeDue())&&(dispenser.size() > 0)&&(this.getChangeDue()>this.minDenom)) {
+				/** If this dispenser carries the largest denomination, emit immediately */
 				if(value == this.maxDenom) {
 					try {
 						dispenser.emit();
@@ -146,7 +155,12 @@ public class PaymentControllerLogic implements BillSlotObserver, BillValidatorOb
 				}
 				else {
 					nextValue = denominations[value+1];
-					if((nextValue < this.getChangeDue())&&(dispensers.get(nextValue).size()>0)) {
+					/** 
+					 * If not the largest denomination, check the next one up. If it is also less than or equal
+					 * to the change due, continue to check it. If not, the current is the best and it should
+					 * be emitted.
+					 */
+					if((nextValue <= this.getChangeDue())&&(dispensers.get(nextValue).size()>0)) {
 						continue;
 					}
 					else {
@@ -157,6 +171,16 @@ public class PaymentControllerLogic implements BillSlotObserver, BillValidatorOb
 							// May add functionality later
 						}
 					}
+				}
+			}
+			/** Assuming for now that if change is less than minDenom, we give customer extra */
+			else if(this.getChangeDue()<this.minDenom) {
+				dispenser = dispensers.get(this.minDenom);
+				try {
+					dispenser.emit();
+				}
+				catch(Exception e) {
+					// May add functionality later
 				}
 			}
 		}
@@ -192,10 +216,14 @@ public class PaymentControllerLogic implements BillSlotObserver, BillValidatorOb
 		
 	}
 
+	/**
+	 * Making this observer call the payment method. This makes sense, as it is the only input
+	 * observer that actually has the bill and its value, and it only makes sense that payment
+	 * calculations are made after the bill has actually been validated.
+	 */
 	@Override
 	public void reactToValidBillDetectedEvent(BillValidator validator, Currency currency, int value) {
 		this.payBill(value);
-		
 	}
 
 	@Override
@@ -206,55 +234,66 @@ public class PaymentControllerLogic implements BillSlotObserver, BillValidatorOb
 
 	@Override
 	public void reactToBillInsertedEvent(BillSlot slot) {
-		// TODO Auto-generated method stub
+		// Ignoring in this iteration
 		
 	}
 
 	@Override
 	public void reactToBillEjectedEvent(BillSlot slot) {
-		// TODO Auto-generated method stub
+		// Ignoring in this iteration
 		
 	}
 
 	@Override
 	public void reactToBillRemovedEvent(BillSlot slot) {
-		// TODO Auto-generated method stub
+		// Ignoring in this iteration
 		
 	}
 
 	@Override
 	public void reactToBillsFullEvent(BillDispenser dispenser) {
-		// TODO Auto-generated method stub
+		// Ignoring in this iteration
 		
 	}
 
 	@Override
 	public void reactToBillsEmptyEvent(BillDispenser dispenser) {
-		// TODO Auto-generated method stub
+		// Ignoring in this iteration
 		
 	}
 
 	@Override
 	public void reactToBillAddedEvent(BillDispenser dispenser, Bill bill) {
-		// TODO Auto-generated method stub
+		// Ignoring in this iteration
 		
 	}
 
+	/**
+	 * Setting this observer to update the amount of change remaining, as it
+	 * should not be updated until the actual bill has been dispensed to the
+	 * customer. It presumably has to do nothing else, as after the change
+	 * has been dispensed control goes over to the print receipt logic.
+	 * If after dispensing there is no change left, life is good. If not,
+	 * it calls dispense change again. No idea how the transition to receiptPrinter
+	 * will be made, could be here - will have to discuss as team.
+	 */
 	@Override
 	public void reactToBillRemovedEvent(BillDispenser dispenser, Bill bill) {
-		// TODO Auto-generated method stub
-		
+		this.setChangeDue(this.getChangeDue()-bill.getValue());
+		if(this.getChangeDue() > 0) {
+			this.dispenseChange();
+		}
 	}
 
 	@Override
 	public void reactToBillsLoadedEvent(BillDispenser dispenser, Bill... bills) {
-		// TODO Auto-generated method stub
+		// Ignoring in this iteration
 		
 	}
 
 	@Override
 	public void reactToBillsUnloadedEvent(BillDispenser dispenser, Bill... bills) {
-		// TODO Auto-generated method stub
+		// Ignoring in this iteration
 		
 	}
 	
