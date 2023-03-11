@@ -1,2 +1,0 @@
-module com.autovend.software {
-}
