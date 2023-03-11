@@ -194,16 +194,16 @@ public class ReceiptPrinterTestH{
 	}
 	
 	/*
-	 * Test Case: The user attempts to print a receipt when there is no paper 
+	 * Test Case: The user attempts to move to a new line of paper when there is no paper 
 	 * in the receipt printer.
 	 * Expected Result: An EmptyException should be thrown as the receipt printer does not 
 	 * have paper within the machine.
 	 */
-	@Test
-	public void printNoPaper(){
+	@Test 
+	public void newLineNoPaper(){
 		try {
 			try {
-				c = 'c';
+				c = '\n';
 				printer.addInk(100);  // Adding ink so we can avoid the case when there is no paper and ink.
 				printer.print(c);
 			} 
@@ -213,7 +213,6 @@ public class ReceiptPrinterTestH{
 		}
 		catch(OverloadException e)
 		{
-			return;
 		}
 		fail("An EmptyException should have been thrown.");
 	}
@@ -254,7 +253,7 @@ public class ReceiptPrinterTestH{
 	 * have ink within the machine.
 	 * 
 	 */
-	@Test
+	@Test 
 	public void printNoInk(){
 		try {
 			try {
@@ -268,7 +267,6 @@ public class ReceiptPrinterTestH{
 		}
 		catch(OverloadException e)
 		{
-			return;
 		}
 		fail("An EmptyException should have been thrown.");
 	}
@@ -340,14 +338,14 @@ public class ReceiptPrinterTestH{
 	 * of 60 characters per line.
 	 * 
 	 */
-	@Test (expected = OverloadException.class)
+	@Test 
 	public void printSpillOff(){
 		try {
 			try {
 				c = 'a';
 				printer.addInk(100);	// Adding enough ink so an EmptyException isn't thrown.
 				printer.addPaper(1);	// Only 1 line of paper should be needed.
-				for(int i = 0; i < 61; i++)
+				for(int i = 0; i < 65; i++)
 				{
 					printer.print(c);	// Use up the a line of paper.
 				}
@@ -360,6 +358,7 @@ public class ReceiptPrinterTestH{
 		{
 			return;
 		}
+		fail("An OverloadException should have been thrown.");
 	}
 	
 	/*
