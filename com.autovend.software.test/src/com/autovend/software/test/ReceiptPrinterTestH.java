@@ -208,10 +208,12 @@ public class ReceiptPrinterTestH{
 				printer.print(c);
 			} 
 			catch (EmptyException e) {
+				return;
 			}
 		}
 		catch(OverloadException e)
 		{
+			return;
 		}
 		fail("An EmptyException should have been thrown.");
 	}
@@ -251,9 +253,6 @@ public class ReceiptPrinterTestH{
 	 * Expected Result: An EmptyException should be thrown as the receipt printer does not 
 	 * have ink within the machine.
 	 * 
-	 * Actual Result: Due to the structure of the code, this error will never be thrown in such a case.
-	 * What's happening is that the inputed character will still be appended to the StringBuilder.
-	 * Solution: Change the else if statement on line 66 of ReceiptPrinter.java to a normal if statement.
 	 */
 	@Test
 	public void printNoInk(){
@@ -283,12 +282,6 @@ public class ReceiptPrinterTestH{
 	 * reactToOutOfPaperEvent method, signifying that not enough paper was added to allow 
 	 * another character to be printed.
 	 * 
-	 * Things noticed: Due to the structure of the code, the condition on line 66 of ReceiptPrinter.java does not
-	 * account for ' '. the only reason the test passed is because the linesOfPaperRemaining decrements by 1 on line 61.
-	 * What's happening is that the else if statement on line 66 has a condition that c != ' ', meaning that
-	 * the user typing in ' ' will never lead to a new line as intended.
-	 * Solution: Change the conditions in the else if statement on line 66 of ReceiptPrinter.java
-	 * such that c == ' ' || Character.isWhitespace(c).
 	 */
 	@Test
 	public void printNewLineSpace(){
@@ -319,13 +312,6 @@ public class ReceiptPrinterTestH{
 	 * reactToOutOfPaperEvent method, signifying that not enough paper was added to allow 
 	 * another character to be printed.
 	 * 
-	 * Things noticed: Since the it is an "else if" statement on line 66, and not an "if" statement. 
-	 * This will never be reached since the previous if and else if statement rely on the amount of
-	 * paper within the machine. The condition on line 66 of ReceiptPrinter.java will never be reached
-	 * and the only reason the test passed is because the linesOfPaperRemaining decrements by 1 on line 61.
-	 * 
-	 * Solution: Change the conditions in the else if statement on line 66 of ReceiptPrinter.java
-	 * such that c == ' ' || Character.isWhitespace(c) and change the else if statement into an if statement.
 	 */
 	@Test
 	public void printNewLineN(){
@@ -353,18 +339,6 @@ public class ReceiptPrinterTestH{
 	 * Expected Result: A new OverloadException should be thrown as there should be only a maximum
 	 * of 60 characters per line.
 	 * 
-	 * Actual Result: An OverloadException is not thrown. This is because the statement on line 66 is an 
-	 * "else if" statement and not an "if" statement. This means that this condition will never 
-	 * be reached since the first two statements, are dependent on the paper in the machine. 
-	 * One of these two conditions will inevitably be met, skipping the following conditions
-	 * that are dependent on the amount of ink and the characters on the current line of paper.
-	 * 
-	 * Solution: Change the else if statement on line 66 to an if statement. Additionally, change the condition on line 68
-	 * from "charactersOnCurrentLine == CHARACTERS_PER_LINE" to "charactersOnCurrentLine > CHARACTERS_PER_LINE" as the current
-	 * condition only ensures that a maximum of 59 characters are on the current line of paper, and not the desired value of 60.
-	 * One final thing to note is that if there is paper in the machine, a new line of paper will be used even if the user does not
-	 * want to create a new line of paper. Therefore, "--linesOfPaperRemaining" should be removed from line 61, and placed below the
-	 * statement on line 66.
 	 */
 	@Test (expected = OverloadException.class)
 	public void printSpillOff(){
@@ -403,19 +377,6 @@ public class ReceiptPrinterTestH{
 	 * 
 	 * Expected Result: A receipt consisting of three characters should be returned for this 
 	 * test case ("abc").
-	 * 
-	 * Actual Result: An EmptyException was thrown. Because a the remaining lines of paper decrements regardless if the user
-	 * types in " " or "\n", the single line of paper is consumed. 
-	 * 
-	 * Solutions: Once again, we will suggest some edits as well as some new ones.
-	 * These should be the final list of edits we would recommend:
-	 * 1. Remove "--linesOfPaperRemaining" from line 61 and place it below the
-	 * 		if statement on line 66.
-	 * 2. Change the "else if" statement on line 66 into an "if" statement
-	 * 3. Change the conditions on line 66 to "if(c == ' ' || c == "\n")".
-	 * 4. Change the condition on line 68 to "else if(charactersOnCurrentLine > CHARACTERS_PER_LINE)"
-	 * 5. Remove "charactersOnCurrentLine++;" from line 77 and move it under the else if statement on line 70
-	 * 		(Below the nested if statement on line 71 as well).
 	 */
 	@Test
 	public void cutThenRemove() {
