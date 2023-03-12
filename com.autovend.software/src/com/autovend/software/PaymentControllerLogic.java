@@ -195,7 +195,12 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 		/** If the customer has paid their cart, check for change */
 		if(this.getCartTotal() <= 0) {
 			this.setChangeDue(0.0 - this.getCartTotal());
-			this.dispenseChange();
+			if(this.getChangeDue() > 0) {
+				this.dispenseChange();
+			}
+			else {
+				//SHOULD CALL PRINT RECEIPT LOGIC - INTEGRATION 
+			}
 		}
 	}
 	
