@@ -10,7 +10,7 @@ package com.autovend.software;
 
 
 /**
- * This interface can be used in testing to simulate customer interactions in certain use cases.
+ * This interface can be used in testing to simulate attendant interactions in certain use cases.
  *
  */
 public interface AttendantIO {
