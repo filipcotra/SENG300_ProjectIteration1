@@ -11,7 +11,7 @@ package com.autovend.software;
 import java.math.BigDecimal;
 
 import com.autovend.Barcode;
-import com.autovend.SellableUnit;
+import com.autovend.BarcodedUnit;
 import com.autovend.devices.AbstractDevice;
 import com.autovend.devices.BarcodeScanner;
 import com.autovend.devices.ElectronicScale;
@@ -29,24 +29,28 @@ import com.autovend.products.BarcodedProduct;
 public class AddItemByScanningController implements BarcodeScannerObserver, ElectronicScaleObserver {
 	
 	SelfCheckoutStation station;
-	double expectedWeight;
 	CustomerIO customerIO;
+	AttendantIO attendantIO;
+	double expectedWeight; // The expected weight of the self checkout station when an item is scanned
+	BarcodedUnit scannedItem; // The current scanned item to be added to the bagging area
 
 	/**
 	 * Initialize a controller for the Add Item by Scanning use case. 
 	 * Also registers this class as an observer for the station's main scanner.
 	 * @param station The self checkout station
 	 * @param customerIO The customer interacting with the Add Item by Scanning use case.
+	 * @param attendantIO The attendant interacting with the Add Item by Scanning use case.
 	 */
-	public AddItemByScanningController(SelfCheckoutStation station, CustomerIO customerIO) {
+	public AddItemByScanningController(SelfCheckoutStation station, CustomerIO customerIO, AttendantIO attendantIO) {
 		this.station = station;
 		this.customerIO = customerIO;
+		this.attendantIO = attendantIO;
 		this.station.mainScanner.register(this);
 		this.station.baggingArea.register(this);
 	}
 	
 	/**
-	 * Blocks the system by disabling all devices besides the bagging area.
+	 * Helper function to block the system by disabling all devices besides the bagging area.
 	 */
 	private void blockSystem() {
 		this.station.printer.disable();
@@ -59,7 +63,7 @@ public class AddItemByScanningController implements BarcodeScannerObserver, Elec
 	}
 	
 	/**
-	 * Unblocks the system by enabling all devices besides the bagging area.
+	 * Helper function to unblock the system by enabling all devices besides the bagging area.
 	 */
 	private void unblockSystem() {
 		this.station.printer.enable();
@@ -72,46 +76,39 @@ public class AddItemByScanningController implements BarcodeScannerObserver, Elec
 	}
 	
 	/**
-	 * Scan the item that CustomerIO chooses to scan (Step 1)
-	 * Requires customer input: scanItem
+	 * Helper function to notify the customer to place the scanned item in the bagging area (Step 5)
+	 * Requires customer input: customerIO.placeScannedItemInBaggingArea()
 	 */
-	public void addItemByScanning() {
-		// Call the scan method of the stations main scanner (Step 1)
-		this.station.mainScanner.scan(customerIO.scanItem());
-		// Go to reactToBarcodeScannedEvent
+	private BarcodedUnit notifyPlaceItemCustomerIO() {
+		return customerIO.placeScannedItemInBaggingArea();
 	}
 	
 	/**
-	 * Notify the customer to place the scanned item in the bagging area (Step 5)
-	 * Requires customer input: placeScannedItemInBaggingArea
+	 * Scan the item that CustomerIO chooses to scan (Step 1 in the use case diagram)
+	 * Requires customer input: customerIO.scanItem()
 	 */
-	public SellableUnit notifyCustomerIO() {
-		return customerIO.placeScannedItemInBaggingArea();
-	}
+	public void addItemByScanning() {
+		// Checking if a customer session is in progress (Exception 2)
+		// This is just done by checking if the customerIO object is null
+		if (customerIO != null) {
+			// Call the scan method of the stations main scanner (Step 1)
+			// Goes to reactToBarcodeScannedEvent when this line is executed
+			this.station.mainScanner.scan(customerIO.scanItem());
+		}
 
-	@Override
-	public void reactToEnabledEvent(AbstractDevice<? extends AbstractDeviceObserver> device) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void reactToDisabledEvent(AbstractDevice<? extends AbstractDeviceObserver> device) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	/**
-	 * Occurs after mainScanner scans an item
+	 * Occurs after mainScanner successfully scans an item
 	 */
 	@Override
 	public void reactToBarcodeScannedEvent(BarcodeScanner barcodeScanner, Barcode barcode) {
-		// Block the self checkout station by disabling all abstract devices. (Step 2)
+		// Block the self checkout station by disabling all abstract devices other than the bagging area. (Step 2)
 		this.blockSystem();
 		
 		// Get product details from the barcode (Step 3)
 		BarcodedProduct product = ProductDatabases.BARCODED_PRODUCT_DATABASE.get(barcode);
-		BigDecimal price = product.getPrice();
+		BigDecimal price = product.getPrice(); // Might not need this
 		double weight = product.getExpectedWeight();
 		
 		// Calculating the expected weight of the bagging area (Step 4)
@@ -121,21 +118,41 @@ public class AddItemByScanningController implements BarcodeScannerObserver, Elec
 			e.printStackTrace();
 		}
 		
-		// Notify Customer I/O to place scanned item in bagging area (Step 5)
-		// And notify weight change (Step 6)
-		this.station.baggingArea.add(this.notifyCustomerIO());
-		// Go to reactToWeightChangedEvent
+		// Notify Customer I/O to place scanned item in bagging area (Step 5) and notify weight change (Step 6)
+		// Goes to reactToWeightChangedEvent after the line is executed
+		this.scannedItem = this.notifyPlaceItemCustomerIO();
+		this.station.baggingArea.add(this.scannedItem);
 		
 	}
 
+	/**
+	 * Occurs after the scanned item is placed in the bagging area
+	 */
 	@Override
 	public void reactToWeightChangedEvent(ElectronicScale scale, double weightInGrams) {
 		// Check for weight discrepancy (Exception 1)
 		if (weightInGrams!= this.expectedWeight) {
 			// WEIGHT DISCREPANCY ERROR
-		} else {
-			this.unblockSystem();
+			// If the attendant does not approve of the weight discrepancy, then remove it from the bagging area
+			// Attendant interaction required: attendantIO.approveWeightDiscrepancy()
+			if (!attendantIO.approveWeightDiscrepancy()) {
+				this.station.baggingArea.remove(scannedItem);
+			}
 		}
+		this.unblockSystem(); // Unblock the system (Step 7)
+	}
+	
+	// The methods below are not needed but required by the inherited interfaces
+	
+	@Override
+	public void reactToEnabledEvent(AbstractDevice<? extends AbstractDeviceObserver> device) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void reactToDisabledEvent(AbstractDevice<? extends AbstractDeviceObserver> device) {
+		// TODO Auto-generated method stub
 		
 	}
 

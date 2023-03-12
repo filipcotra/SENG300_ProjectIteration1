@@ -8,7 +8,7 @@
 
 package com.autovend.software;
 
-import com.autovend.SellableUnit;
+import com.autovend.BarcodedUnit;
 
 /**
  * This interface can be used in testing to simulate customer interactions in certain use cases.
@@ -21,7 +21,7 @@ public interface CustomerIO {
 	 * This interaction is on Step 1 of add item by scanning.
 	 * @return The item that the customer will scan. 
 	 */
-	public SellableUnit scanItem();
+	public BarcodedUnit scanItem();
 
 	/**
 	 * Simulates a customer placing their scanned item in the bagging area.
@@ -29,6 +29,6 @@ public interface CustomerIO {
 	 * @return The item that the customer will place in the bagging area. 
 	 * This item can be the same as the one they scanned or some random item.
 	 */
-	public SellableUnit placeScannedItemInBaggingArea();
+	public BarcodedUnit placeScannedItemInBaggingArea();
 
 }
