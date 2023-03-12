@@ -31,4 +31,13 @@ public interface CustomerIO {
 	 */
 	public BarcodedUnit placeScannedItemInBaggingArea();
 
+	/**
+	 * Simulates a customer being informed of the updated total due for their
+	 * cart based on how much they have paid. This is step 4 in "Pay with Cash."
+	 * Returns nothing.
+	 * 
+	 * @param totalRemaining
+	 * 					The total remaining to pay from the customers cart
+	 */
+	public void showUpdatedTotal(Double totalRemaining);
 }

@@ -15,9 +15,18 @@ package com.autovend.software;
  */
 public interface AttendantIO {
 	/**
-	 * Simulates a attendant approving/rejecting a weight discrepancy
+	 * Simulates an attendant approving/rejecting a weight discrepancy
 	 * This interaction is apart of the Weight Discrepancy use case
 	 * @return true if approved, false if rejected
 	 */
 	public boolean approveWeightDiscrepancy();
+	
+	/**
+	 * Simulates an attendant being informed of a change discrepancy.
+	 * Returns nothing.
+	 * 
+	 * @param changeLeft
+	 * 				Amount of change left that must be given to customer
+	 */
+	public void changeRemainsNoDenom(double changeLeft);
 }
