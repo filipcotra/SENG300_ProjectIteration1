@@ -59,7 +59,21 @@ public class AddItemByScanningController implements BarcodeScannerObserver, Elec
 	}
 	
 	/**
+	 * Unblocks the system by enabling all devices besides the bagging area.
+	 */
+	private void unblockSystem() {
+		this.station.printer.enable();
+		this.station.mainScanner.enable();
+		this.station.handheldScanner.enable();
+		this.station.billInput.enable();
+		this.station.billOutput.enable();
+		this.station.billStorage.enable();
+		this.station.billValidator.enable();
+	}
+	
+	/**
 	 * Scan the item that CustomerIO chooses to scan (Step 1)
+	 * Requires customer input: scanItem
 	 */
 	public void addItemByScanning() {
 		// Call the scan method of the stations main scanner (Step 1)
@@ -68,7 +82,8 @@ public class AddItemByScanningController implements BarcodeScannerObserver, Elec
 	}
 	
 	/**
-	 * Method to notify the customer (Step 5)
+	 * Notify the customer to place the scanned item in the bagging area (Step 5)
+	 * Requires customer input: placeScannedItemInBaggingArea
 	 */
 	public SellableUnit notifyCustomerIO() {
 		return customerIO.placeScannedItemInBaggingArea();
@@ -107,6 +122,7 @@ public class AddItemByScanningController implements BarcodeScannerObserver, Elec
 		}
 		
 		// Notify Customer I/O to place scanned item in bagging area (Step 5)
+		// And notify weight change (Step 6)
 		this.station.baggingArea.add(this.notifyCustomerIO());
 		// Go to reactToWeightChangedEvent
 		
@@ -117,6 +133,8 @@ public class AddItemByScanningController implements BarcodeScannerObserver, Elec
 		// Check for weight discrepancy (Exception 1)
 		if (weightInGrams!= this.expectedWeight) {
 			// WEIGHT DISCREPANCY ERROR
+		} else {
+			this.unblockSystem();
 		}
 		
 	}
