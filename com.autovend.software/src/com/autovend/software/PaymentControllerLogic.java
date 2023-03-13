@@ -147,6 +147,8 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 				if(value == this.maxDenom) {
 					try {
 						dispenser.emit();
+						/** Incrementing value so that the same denomination will be checked again */
+						value++;
 					}
 					catch(EmptyException ee) {
 						/** If empty, just move on to smaller denom */
