@@ -29,4 +29,12 @@ public interface AttendantIO {
 	 * 				Amount of change left that must be given to customer
 	 */
 	public void changeRemainsNoDenom(double changeLeft);
+	
+	/**
+	 * Simulates informing the attendant that a duplicate receipt 
+	 * must be printed because the printer is out of ink or paper.
+	 * Printing is aborted, the station will be suspended and the
+	 * attendant will also be informed that the station needs maintenance.
+	 */
+	public void printDuplicateReceipt();
 }

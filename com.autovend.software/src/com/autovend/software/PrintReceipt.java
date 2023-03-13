@@ -19,10 +19,12 @@ import com.autovend.devices.observers.ReceiptPrinterObserver;
  */
 public class PrintReceipt implements ReceiptPrinterObserver {
 
-	private ReceiptPrinter printer;
-	private int totalVal = 0; // Total value of the items
-	private String amountPaidbyUser = "";
-	private String changeNeeded = "";
+	ReceiptPrinter printer;
+	int totalVal = 0; // Total value of the items
+	String amountPaidbyUser = "";
+	String changeNeeded = "";
+	CustomerIO customer;
+	AttendantIO attendant;
 
 	/**
 	 * Initialize a printer for the Print Receipt use case. 
@@ -31,10 +33,12 @@ public class PrintReceipt implements ReceiptPrinterObserver {
 	 * 
 	 * @param printer The Receipt Printer to be used
 	 */
-	public PrintReceipt(ReceiptPrinter printer) {
+	public PrintReceipt(ReceiptPrinter printer, CustomerIO c, AttendantIO a) {
 		this.printer = printer;
 		// Register this class as an observer of the printer
 		this.printer.register(this);
+		this.customer = c;
+		this.attendant = a;
 	}
 
 	/**
