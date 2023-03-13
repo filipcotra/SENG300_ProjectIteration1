@@ -22,11 +22,18 @@ public interface AttendantIO {
 	public boolean approveWeightDiscrepancy();
 	
 	/**
-	 * Simulates an attendant being informed of a change discrepancy.
-	 * Returns nothing.
+	 * Simulates an attendant being informed of a change discrepancy and that
+	 * the station needs maintenance.
 	 * 
 	 * @param changeLeft
 	 * 				Amount of change left that must be given to customer
 	 */
 	public void changeRemainsNoDenom(double changeLeft);
+
+	/**
+	 * Simulates an attendant being informed that a duplicate receipt must
+	 * be provided to the customer due to a printer error, and that the station
+	 * needs maintenance.
+	 */
+	public void giveDuplicateReceipt();
 }

@@ -40,4 +40,11 @@ public interface CustomerIO {
 	 * 					The total remaining to pay from the customers cart
 	 */
 	public void showUpdatedTotal(Double totalRemaining);
+
+	/**
+	 * Simulates the customer session being complete. Will thank the customer
+	 * and then ready the machine for a new customer (likely by destroying previous
+	 * instances of logic and creating new ones). This is Step 5 & 6 in "Print Receipt."
+	 */
+	public void sessionComplete();
 }

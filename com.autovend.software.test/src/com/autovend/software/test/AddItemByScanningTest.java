@@ -71,6 +71,12 @@ public class AddItemByScanningTest {
 				// Implement some basic function
 			}
 
+			@Override
+			public void sessionComplete() {
+				// TODO Auto-generated method stub
+				
+			}
+
 
 			
 		}
@@ -85,6 +91,12 @@ public class AddItemByScanningTest {
 			@Override
 			public void changeRemainsNoDenom(double changeLeft) {
 				// Implement some basic function		
+			}
+
+			@Override
+			public void giveDuplicateReceipt() {
+				// TODO Auto-generated method stub
+				
 			}
 
 		}
