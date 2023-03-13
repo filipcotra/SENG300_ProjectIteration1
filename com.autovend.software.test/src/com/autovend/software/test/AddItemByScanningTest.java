@@ -72,7 +72,7 @@ public class AddItemByScanningTest {
 			}
 
 			@Override
-			public void sessionComplete() {
+			public void thankCustomer() {
 				// TODO Auto-generated method stub
 				
 			}
@@ -94,7 +94,7 @@ public class AddItemByScanningTest {
 			}
 
 			@Override
-			public void giveDuplicateReceipt() {
+			public void printDuplicateReceipt() {
 				// TODO Auto-generated method stub
 				
 			}
