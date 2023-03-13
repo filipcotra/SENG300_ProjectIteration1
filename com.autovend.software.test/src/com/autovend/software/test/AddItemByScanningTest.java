@@ -66,6 +66,11 @@ public class AddItemByScanningTest {
 				return placedItem;
 			}
 
+			@Override
+			public void showUpdatedTotal(Double totalRemaining) {
+				// Implement some basic function
+			}
+
 
 			
 		}
@@ -75,6 +80,11 @@ public class AddItemByScanningTest {
 			@Override
 			public boolean approveWeightDiscrepancy() {
 				return true;
+			}
+
+			@Override
+			public void changeRemainsNoDenom(double changeLeft) {
+				// Implement some basic function		
 			}
 
 		}
