@@ -12,6 +12,7 @@ import com.autovend.devices.OverloadException;
 import com.autovend.devices.ReceiptPrinter;
 import com.autovend.devices.SimulationException;
 
+
 public class ReceiptPrinterTestH{
 	public char c;
 	public ReceiptPrinter printer;
@@ -34,6 +35,10 @@ public class ReceiptPrinterTestH{
 		printer.deregister(observer);
 		observer = null;
 		printer = null;
+	}
+	
+	public void startNextLine() throws OverloadException, EmptyException {
+		printer.print('\n');
 	}
 	
 	/*
@@ -203,9 +208,8 @@ public class ReceiptPrinterTestH{
 	public void newLineNoPaper(){
 		try {
 			try {
-				c = '\n';
+				startNextLine();
 				printer.addInk(100);  // Adding ink so we can avoid the case when there is no paper and ink.
-				printer.print(c);
 			} 
 			catch (EmptyException e) {
 				return;
@@ -286,7 +290,6 @@ public class ReceiptPrinterTestH{
 		try {
 			try {
 				c = ' ';
-				printer.addInk(1);	// Adding ink so an EmptyException is not thrown for the wrong reason.
 				printer.addPaper(1); // Adding paper so we can avoid the case when there is no paper 
 				printer.print(c);	// Use up the first and only line of paper.
 			} 
@@ -315,10 +318,8 @@ public class ReceiptPrinterTestH{
 	public void printNewLineN(){
 		try {
 			try {
-				c = '\n';
-				printer.addInk(1);	// Adding ink so an EmptyException is thrown for the wrong reason.
 				printer.addPaper(1); // Adding paper so we can avoid the case when there is no paper 
-				printer.print(c);	// Use up the first and only line of paper.
+				startNextLine();	// Use up the first and only line of paper.
 			} 
 			catch (EmptyException e) {
 				return;
@@ -341,18 +342,15 @@ public class ReceiptPrinterTestH{
 	@Test 
 	public void printSpillOff(){
 		try {
-			try {
-				c = 'a';
-				printer.addInk(100);	// Adding enough ink so an EmptyException isn't thrown.
-				printer.addPaper(1);	// Only 1 line of paper should be needed.
 				for(int i = 0; i < 65; i++)
 				{
-					printer.print(c);	// Use up the a line of paper.
+					try {
+						printer.print(c);	// Use up the a line of paper.
+					}
+					catch (EmptyException e) {
+						return;
+					}
 				}
-			} 
-			catch (EmptyException e) {
-				return;
-			}
 		}
 		catch(OverloadException e)
 		{
