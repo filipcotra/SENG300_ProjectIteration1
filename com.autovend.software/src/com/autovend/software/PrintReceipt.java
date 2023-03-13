@@ -63,7 +63,8 @@ public class PrintReceipt implements ReceiptPrinterObserver {
 			printer.print(' ');
 			// Print the total as a character
 			printer.print(Character.forDigit(totalVal, 10));
-			printer.print('\n'); // Print a newline character after the total
+			// Print a newline character after the total
+			printer.print('\n'); 
 
 			// Taking the amount paid by the user and storing it as a string
 			for (int j = 0; j < amountPaid.length; j++) {
