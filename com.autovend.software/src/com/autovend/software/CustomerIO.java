@@ -40,4 +40,10 @@ public interface CustomerIO {
 	 * 					The total remaining to pay from the customers cart
 	 */
 	public void showUpdatedTotal(Double totalRemaining);
+	
+	/**
+	 * Simulates steps 5 and 6 of the Print Receipt use case by thanking the
+	 * customer, ending the current session and getting ready for the next one. 
+	 */
+	public void thankCustomer();
 }
