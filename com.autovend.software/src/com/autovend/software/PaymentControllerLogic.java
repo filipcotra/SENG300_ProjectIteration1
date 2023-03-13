@@ -52,10 +52,14 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 	 * 
 	 * @param SCS
 	 * 		Self-Checkout Station on which to install the logic
+	 * @param customer
+	 * 		CustomerIO interface to represent customer session
+	 * @param attendant
+	 * 		AttendantIO interface that is monitoring the machine
 	 */
 	public PaymentControllerLogic(SelfCheckoutStation SCS, CustomerIO customer, AttendantIO attendant) {
-		station = SCS;
-		station.billValidator.register(this);
+		this.station = SCS;
+		this.station.billValidator.register(this);
 		this.denominations = station.billDenominations;
 		Arrays.sort(this.denominations);
 		this.maxDenom = Arrays.stream(this.denominations).max().getAsInt();
@@ -74,7 +78,7 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 	 * made instance of the class which is installed on the given
 	 * station.
 	 */
-	public static PaymentControllerLogic installPaymentControll(SelfCheckoutStation SCS, CustomerIO customer, AttendantIO attendant) {
+	public static PaymentControllerLogic installPaymentController(SelfCheckoutStation SCS, CustomerIO customer, AttendantIO attendant) {
 		return new PaymentControllerLogic(SCS, customer, attendant);
 	}
 
@@ -147,7 +151,7 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 				if(value == this.maxDenom) {
 					try {
 						dispenser.emit();
-						/** Incrementing value so that the same denomination will be checked again */
+						/** Incrementing value so that the same denomination will be checked again */	
 						value++;
 					}
 					catch(EmptyException ee) {
@@ -234,25 +238,21 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 	@Override
 	public void reactToInvalidBillDetectedEvent(BillValidator validator) {
 		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
 	public void reactToBillsFullEvent(BillDispenser dispenser) {
 		// Ignoring in this iteration
-		
 	}
 
 	@Override
 	public void reactToBillsEmptyEvent(BillDispenser dispenser) {
 		// Ignoring in this iteration
-		
 	}
 
 	@Override
 	public void reactToBillAddedEvent(BillDispenser dispenser, Bill bill) {
 		// Ignoring in this iteration
-		
 	}
 
 	/**
@@ -277,13 +277,11 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 	@Override
 	public void reactToBillsLoadedEvent(BillDispenser dispenser, Bill... bills) {
 		// Ignoring in this iteration
-		
 	}
 
 	@Override
 	public void reactToBillsUnloadedEvent(BillDispenser dispenser, Bill... bills) {
 		// Ignoring in this iteration
-		
 	}
 	
 	
