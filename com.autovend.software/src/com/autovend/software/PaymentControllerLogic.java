@@ -8,6 +8,7 @@
 
 package com.autovend.software;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Currency;
 import java.util.Map;
@@ -42,6 +43,11 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 	private ReceiptPrinter printer;
 	private CustomerIO myCustomer;
 	private AttendantIO myAttendant;
+	private PrintReceipt printerLogic;
+	private ArrayList<String> itemNameList = new ArrayList<String>();
+	private ArrayList<String> itemCostList = new ArrayList<String>();
+	private int amountPaid;
+	private double totalChange;
 	
 	/**
 	 * Constructor. Takes a Self-Checkout Station  and initializes
@@ -57,7 +63,7 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 	 * @param attendant
 	 * 		AttendantIO interface that is monitoring the machine
 	 */
-	public PaymentControllerLogic(SelfCheckoutStation SCS, CustomerIO customer, AttendantIO attendant) {
+	public PaymentControllerLogic(SelfCheckoutStation SCS, CustomerIO customer, AttendantIO attendant, PrintReceipt printerLogic) {
 		this.station = SCS;
 		this.station.billValidator.register(this);
 		this.denominations = station.billDenominations;
@@ -71,6 +77,8 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 		}
 		this.myCustomer = customer;
 		this.myAttendant = attendant;
+		this.printerLogic = printerLogic;
+		this.amountPaid = 0;
 	}
 	
 	/**
@@ -78,15 +86,51 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 	 * made instance of the class which is installed on the given
 	 * station.
 	 */
-	public static PaymentControllerLogic installPaymentController(SelfCheckoutStation SCS, CustomerIO customer, AttendantIO attendant) {
-		return new PaymentControllerLogic(SCS, customer, attendant);
+	public static PaymentControllerLogic installPaymentController(SelfCheckoutStation SCS, CustomerIO customer, AttendantIO attendant, PrintReceipt printerLogic) {
+		return new PaymentControllerLogic(SCS, customer, attendant, printerLogic);
 	}
 
 	/**
-	 * Updates cartTotal. Takes any double. Would presumably be updated
-	 * by ScannerControllerLogic, as that is where the cost is being found.
+	 * Updates the amount paid by the customer.
+	 * 
+	 * @param billValue
+	 * 			The value of the bill inserted
+	 */
+	public void updateAmountPaid(int value) {
+		this.amountPaid += value;
+	}
+	
+	/**
+	 * Basic getter to return amount paid field.
+	 */
+	public String getAmountPaid() {
+		return "" + this.amountPaid;
+	}
+
+	/**
+	 * Sets the total amount of change due to the customer.
+	 * This value will not be updated, and is related to 
+	 * printing the receipt.
+	 * 
+	 * @param amount
+	 * 			Amount of change to be due
+	 */
+	public void setTotalChange(double amount) {
+		this.totalChange = amount;
+	}
+	
+	/**
+	 * Basic getter to return total change.
+	 */
+	public String getTotalChange() {
+		return "" + this.totalChange;
+	}
+	
+	/**
+	 * Updates cartTotal. Takes any double. Should be called by AddItemByScanningController
+	 * to update, as that is where the cost of each item is being determined.
 	 * Updates by item, not all at once, so will have to be called numerous
-	 * times. NEEDS TO BE INTEGRATED
+	 * times.
 	 * 
 	 * @param price
 	 * 		amount to be added to running total
@@ -105,6 +149,21 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 	
 	public void setCartTotal(double total) {
 		this.cartTotal += total;
+	}
+
+	/**
+	 * Builds the lists for the item names and costs in the cart. Should
+	 * be called by AddItemByScanningController as needed to update
+	 * this info.
+	 * 
+	 * @param itemName
+	 * 			The name of the item added
+	 * @param itemCost
+	 * 			The cost of the item added
+	 */
+	public void updateItemCostList(String itemName, String itemCost) {
+		this.itemCostList.add(0,itemName);
+		this.itemCostList.add(0,itemCost);
 	}
 	
 	/**
@@ -131,6 +190,24 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 	private double getChangeDue() {
 		return this.changeDue;
 	}
+
+	/**
+	 * Suspends machine
+	 */
+	private void suspendMachine() {
+		this.station.baggingArea.disable();
+		for(int denom : this.denominations) {
+			this.station.billDispensers.get(denom).disable();
+		}
+		this.station.billInput.disable();
+		this.station.billOutput.disable();
+		this.station.billStorage.disable();
+		this.station.billValidator.disable();
+		this.station.handheldScanner.disable();
+		this.station.mainScanner.disable();
+		this.station.printer.disable();
+		this.station.scale.disable();
+	}
 	
 	/**
 	 * Dispenses change based on denominations. Looks through denominations in the 
@@ -143,8 +220,8 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 	public void dispenseChange() {
 		BillDispenser dispenser;
 		/** Go through denominations backwards, largest to smallest */
-		for(int value = denominations.length-1 ; value >= 0 ; value--) {
-			dispenser = dispensers.get(value);
+		for(int value = this.denominations.length-1 ; value >= 0 ; value--) {
+			dispenser = this.dispensers.get(value);
 			/** If the value of the bill is less than or equal to the change and change is payable */
 			if((value <= this.getChangeDue())&&(this.getChangeDue()>this.minDenom)) {
 				/** If this dispenser carries the largest denomination, emit immediately */
@@ -172,7 +249,7 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 						if(value == this.minDenom) {
 							/** In this case change will be larger than smallest denom but unpayable */
 							myAttendant.changeRemainsNoDenom(this.getChangeDue());
-							// Suspend machine - Disable everything? Ask in meeting
+							this.suspendMachine();
 						}
 						else {
 							continue;
@@ -196,16 +273,18 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 	 * added. (Step 2, Step 3, Step 5, Step 6)
 	 */
 	public void payBill(int billValue) {
+		this.updateAmountPaid(billValue);
 		this.setCartTotal(this.getCartTotal() - billValue);
 		myCustomer.showUpdatedTotal(this.getCartTotal());
 		/** If the customer has paid their cart, check for change */
 		if(this.getCartTotal() <= 0) {
 			this.setChangeDue(0.0 - this.getCartTotal());
+			this.setTotalChange(this.getChangeDue());
 			if(this.getChangeDue() > 0) {
 				this.dispenseChange();
 			}
 			else {
-				//SHOULD CALL PRINT RECEIPT LOGIC - INTEGRATION 
+				this.printerLogic.print(this.itemNameList,this.itemCostList,this.getTotalChange(),this.getAmountPaid());
 			}
 		}
 	}
@@ -232,12 +311,9 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 		this.payBill(value);
 	}
 
-	/**
-	 * Thinking to just call CustomerIO and inform them of invalid bill - Ask in meeting.
-	 */
 	@Override
 	public void reactToInvalidBillDetectedEvent(BillValidator validator) {
-		// TODO Auto-generated method stub
+		// Ignoring in this iteration
 	}
 
 	@Override
@@ -270,7 +346,7 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 			this.dispenseChange();
 		}
 		else {
-			// SHOULD CALL RECEIPT PRINTER LOGIC - INTEGRATION
+			this.printerLogic.print(this.itemNameList,this.itemCostList,this.getTotalChange(),this.getAmountPaid());
 		}
 	}
 
