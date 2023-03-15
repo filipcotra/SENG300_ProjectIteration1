@@ -9,6 +9,8 @@
 
 package com.autovend.software;
 
+import java.util.ArrayList;
+
 import com.autovend.devices.AbstractDevice;
 import com.autovend.devices.ReceiptPrinter;
 import com.autovend.devices.observers.AbstractDeviceObserver;
@@ -54,20 +56,23 @@ public class PrintReceipt implements ReceiptPrinterObserver {
 	 * @param change     the change due after the customer has paid
 	 * @param amountPaid the amount that the customer paid
 	 */
-	public void print(char[] items, char[] prices, char[] change, char[] amountPaid) {
+	public void print(ArrayList<String> items, ArrayList<String> prices, String change, String amountPaid) {
 		try {
+			
 			// Print the items and prices
-			for (int i = 0; i < items.length; i++) {
-				// Print each item
-				printer.print(items[i]);
-				printer.print(' ');
-				// Print the price of the item
-				printer.print(prices[i]);
-				// Adds the value of that item to the total
-				totalVal += (Character.getNumericValue(prices[i]));
-				// Print a newline character after each item
-				printer.print('\n');
-			}
+						for (int i = 0; i < items.size(); i++) {
+
+							for (int j = 0; j < items.get(i).length(); j++) {
+								printer.print(items.get(i).charAt(j));
+							}
+							for (int k = 0; k < items.get(i).length(); k++) {
+								printer.print(items.get(i).charAt(k));
+								totalVal += (Integer.parseInt(amountPaid));
+							}
+							
+							// Print a newline character after each item
+							printer.print('\n');
+						}
 
 			// Printing the total val
 			printer.print('T');
@@ -83,11 +88,6 @@ public class PrintReceipt implements ReceiptPrinterObserver {
 			// Print a newline character after the total
 			printer.print('\n');
 
-			// Taking the amount paid by the user and storing it as a string
-			for (int j = 0; j < amountPaid.length; j++) {
-				amountPaidbyUser += (String.valueOf(amountPaid[j]));
-			}
-
 			// Printing amount paid
 			printer.print('P');
 			printer.print('a');
@@ -97,18 +97,21 @@ public class PrintReceipt implements ReceiptPrinterObserver {
 			printer.print(' ');
 
 			// Taking the total amount paid by the user and printing it
-			for (int k = 0; k < amountPaidbyUser.length(); k++) {
-				printer.print(amountPaidbyUser.charAt(k));
+			for (int l = 0; l < amountPaid.length(); l++) {
+				printer.print(amountPaid.charAt(l));
 			}
 
 			// Printing a newline character
 			printer.print('\n');
 
 			// Taking the change due for the user and storing it as a string
-			for (int l = 0; l < change.length; l++) {
-				changeNeeded += (String.valueOf(change[l]));
+			for (int l = 0; l < change.length(); l++) {
+				changeNeeded += (String.valueOf(change));
 			}
 
+			// Printing a newline character
+			printer.print('\n');
+			
 			// Change Due
 			printer.print('C');
 			printer.print('h');
@@ -120,8 +123,8 @@ public class PrintReceipt implements ReceiptPrinterObserver {
 			printer.print(' ');
 
 			// Printing the change due
-			for (int m = 0; m < amountPaidbyUser.length(); m++) {
-				printer.print(changeNeeded.charAt(m));
+			for (int m = 0; m < change.length(); m++) {
+				printer.print(change.charAt(m));
 			}
 
 			// Printing a newline character
