@@ -33,6 +33,7 @@ public class AddItemByScanningController implements BarcodeScannerObserver, Elec
 	AttendantIO attendantIO;
 	double expectedWeight; // The expected weight of the self checkout station when an item is scanned
 	BarcodedUnit scannedItem; // The current scanned item to be added to the bagging area
+	PaymentControllerLogic paymentController;
 
 	/**
 	 * Initialize a controller for the Add Item by Scanning use case. 
@@ -41,10 +42,11 @@ public class AddItemByScanningController implements BarcodeScannerObserver, Elec
 	 * @param customerIO The customer interacting with the Add Item by Scanning use case.
 	 * @param attendantIO The attendant interacting with the Add Item by Scanning use case.
 	 */
-	public AddItemByScanningController(SelfCheckoutStation station, CustomerIO customerIO, AttendantIO attendantIO) {
+	public AddItemByScanningController(SelfCheckoutStation station, CustomerIO customerIO, AttendantIO attendantIO, PaymentControllerLogic paymentController) {
 		this.station = station;
 		this.customerIO = customerIO;
 		this.attendantIO = attendantIO;
+		this.paymentController = paymentController;
 		this.station.mainScanner.register(this);
 		this.station.baggingArea.register(this);
 	}
@@ -108,10 +110,15 @@ public class AddItemByScanningController implements BarcodeScannerObserver, Elec
 		
 		// Get product details from the barcode (Step 3)
 		BarcodedProduct product = ProductDatabases.BARCODED_PRODUCT_DATABASE.get(barcode);
-		BigDecimal price = product.getPrice(); // Might not need this
-		double weight = product.getExpectedWeight();
+		
+		// Update cart total and item cost list
+		BigDecimal price = product.getPrice();
+		this.paymentController.updateCartTotal(price.floatValue());
+		this.paymentController.updateItemCostList(product.getDescription(), price.toString());
+
 		
 		// Calculating the expected weight of the bagging area (Step 4)
+		double weight = product.getExpectedWeight();
 		try {
 			this.expectedWeight = this.station.baggingArea.getCurrentWeight() + weight;
 		} catch (OverloadException e) {
