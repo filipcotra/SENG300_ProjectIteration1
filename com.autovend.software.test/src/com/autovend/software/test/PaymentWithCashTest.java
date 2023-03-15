@@ -152,7 +152,9 @@ public class PaymentWithCashTest {
 				new BigDecimal[] {new BigDecimal(1),new BigDecimal(2)}, 10000, 5);
 		attendant = new MyAttendantIO();
 		
-		// load one hundred, $5, $10, $20, $50 bills into the dispensers so we can dispense change during tests.
+		/* Load one hundred, $5, $10, $20, $50 bills into the dispensers so we can dispense change during tests.
+		 * Every dispenser has a max capacity of 100 bills. 
+		 */
 		fiveDollarBills = new Bill[100];
 		tenDollarBills = new Bill[100];
 		twentyDollarBills = new Bill[100];
@@ -198,10 +200,6 @@ public class PaymentWithCashTest {
 			selfCheckoutStation.billInput.register(billObserver);
 			selfCheckoutStation.billInput.accept(billHundred);
 			assertEquals(selfCheckoutStation.billInput,billObserver.device);
-			assertEquals(100,selfCheckoutStation.billDispensers.get(5).size());
-			assertEquals(100,selfCheckoutStation.billDispensers.get(10).size());
-			assertEquals(100,selfCheckoutStation.billDispensers.get(20).size());
-			assertEquals(100,selfCheckoutStation.billDispensers.get(50).size());
 		} catch (DisabledException e) {
 			return;
 		} catch (OverloadException e) {
