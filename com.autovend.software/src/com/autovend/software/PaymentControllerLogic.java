@@ -220,16 +220,16 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 	public void dispenseChange() {
 		BillDispenser dispenser;
 		/** Go through denominations backwards, largest to smallest */
-		for(int value = this.denominations.length-1 ; value >= 0 ; value--) {
-			dispenser = this.dispensers.get(value);
+		for(int index = this.denominations.length-1 ; index >= 0 ; index--) {
+			dispenser = this.dispensers.get(this.denominations[index]);
 			/** If the value of the bill is less than or equal to the change and change is payable */
-			if((value <= this.getChangeDue())&&(this.getChangeDue()>this.minDenom)) {
+			if((this.denominations[index] <= this.getChangeDue())&&(this.getChangeDue()>this.minDenom)) {
 				/** If this dispenser carries the largest denomination, emit immediately */
-				if(value == this.maxDenom) {
+				if(this.denominations[index] == this.maxDenom) {
 					try {
 						dispenser.emit();
 						/** Incrementing value so that the same denomination will be checked again */	
-						value++;
+						index++;
 					}
 					catch(EmptyException ee) {
 						/** If empty, just move on to smaller denom */
@@ -246,7 +246,7 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 					}
 					/** If empty and not the smallest denom, move on. If the smallest denom, inform attendant */
 					catch(EmptyException e) {
-						if(value == this.minDenom) {
+						if(this.denominations[index] == this.minDenom) {
 							/** In this case change will be larger than smallest denom but unpayable */
 							myAttendant.changeRemainsNoDenom(this.getChangeDue());
 							this.suspendMachine();
