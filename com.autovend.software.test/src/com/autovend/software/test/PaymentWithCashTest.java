@@ -26,6 +26,9 @@ import com.autovend.devices.SelfCheckoutStation;
 import com.autovend.software.AttendantIO;
 import com.autovend.software.CustomerIO;
 import com.autovend.software.PaymentControllerLogic;
+import com.autovend.devices.AbstractDevice;
+import com.autovend.devices.observers.AbstractDeviceObserver;
+import com.autovend.devices.observers.BillSlotObserver;
 
 public class PaymentWithCashTest {
 
@@ -53,6 +56,12 @@ public class PaymentWithCashTest {
 			// TODO Auto-generated method stub
 			
 		}
+
+		@Override
+		public void thankCustomer() {
+			// TODO Auto-generated method stub
+			
+		}
 	
 	}
 	
@@ -69,6 +78,47 @@ public class PaymentWithCashTest {
 				// TODO Auto-generated method stub
 				
 			}
+
+			@Override
+			public void printDuplicateReceipt() {
+				// TODO Auto-generated method stub
+				
+			}
+	}
+	
+	class MyBillSlotObserver implements BillSlotObserver{
+
+		@Override
+		public void reactToEnabledEvent(AbstractDevice<? extends AbstractDeviceObserver> device) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void reactToDisabledEvent(AbstractDevice<? extends AbstractDeviceObserver> device) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void reactToBillInsertedEvent(BillSlot slot) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void reactToBillEjectedEvent(BillSlot slot) {
+			// TODO Auto-generated method stub
+			
+			
+		}
+
+		@Override
+		public void reactToBillRemovedEvent(BillSlot slot) {
+			// TODO Auto-generated method stub
+			
+		}
+		
 	}
 	
 	@Before
@@ -76,7 +126,7 @@ public class PaymentWithCashTest {
 		bill = new Bill(25, Currency.getInstance("CAD"));
 		selfCheckoutStation = new SelfCheckoutStation(Currency.getInstance("CAD"), new int[] {5,10,20}, 
 				new BigDecimal[] {new BigDecimal(1),new BigDecimal(2)}, 10000, 5);
-		paymentController = new PaymentControllerLogic(selfCheckoutStation, new MyCustomerIO(), new MyAttendantIO());
+		paymentController = new PaymentControllerLogic(selfCheckoutStation, new MyCustomerIO(), new MyAttendantIO(), null);
 		
 		
 		
