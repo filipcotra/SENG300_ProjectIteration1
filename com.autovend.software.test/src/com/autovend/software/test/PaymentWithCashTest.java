@@ -13,7 +13,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Currency;
+import java.util.LinkedList;
+import java.util.Queue;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -24,10 +27,10 @@ import com.autovend.devices.BillSlot;
 import com.autovend.devices.DisabledException;
 import com.autovend.devices.OverloadException;
 import com.autovend.devices.SelfCheckoutStation;
+import com.autovend.devices.SimulationException;
 import com.autovend.software.AttendantIO;
 import com.autovend.software.CustomerIO;
 import com.autovend.software.PaymentControllerLogic;
-//import com.autovend.software.test.ReceiptPrinterTestH.MyReceiptPrinterObserver;
 import com.autovend.devices.AbstractDevice;
 import com.autovend.devices.observers.AbstractDeviceObserver;
 import com.autovend.devices.observers.BillSlotObserver;
@@ -36,9 +39,15 @@ public class PaymentWithCashTest {
 
 	PaymentControllerLogic paymentController;
 	SelfCheckoutStation selfCheckoutStation;
-	public MyBillSlotObserver billObserver;
+	MyBillSlotObserver billObserver;
+	MyAttendantIO attendant;
+	ArrayList<Bill> billArrayList;
 	BillSlot billSlot;
-	Bill bill;
+	Bill billFive;
+	Bill billTen;
+	Bill billTwenty;
+	Bill billFifty;
+	Bill billHundred;
 	
 	class MyCustomerIO implements CustomerIO {
 		
@@ -130,27 +139,61 @@ public class PaymentWithCashTest {
 	
 	@Before
 	public void setUp() {
-		bill = new Bill(100, Currency.getInstance("CAD"));
+		billArrayList  = new ArrayList<>();
+		billFive = new Bill(5, Currency.getInstance("CAD"));
+		billTen = new Bill(10, Currency.getInstance("CAD"));
+		billTwenty = new Bill(20, Currency.getInstance("CAD"));
+		billFifty = new Bill(50, Currency.getInstance("CAD"));
+		billHundred = new Bill(100, Currency.getInstance("CAD"));
 		selfCheckoutStation = new SelfCheckoutStation(Currency.getInstance("CAD"), new int[] {5,10,20,50}, 
 				new BigDecimal[] {new BigDecimal(1),new BigDecimal(2)}, 10000, 5);
-		paymentController = new PaymentControllerLogic(selfCheckoutStation, new MyCustomerIO(), new MyAttendantIO(), null);
-		
-		
+		attendant = new MyAttendantIO();
+		for(int i = 0; i < 100; i++) {
+			billArrayList.add(billFive);
+		}
+		Object[] bills = billArrayList.toArray();
+		try {
+			selfCheckoutStation.billDispensers.get(5).load((Bill[]) bills);
+		} catch (SimulationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (OverloadException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		paymentController = new PaymentControllerLogic(selfCheckoutStation, new MyCustomerIO(), attendant, null);
+		paymentController.setCartTotal(0);
 		
 	}
 	
+	/* Test Case: Inserting an invalid bill to the self-checkout machine
+	 * 
+	 * Description: "If the customer inserts cash that is deemed unacceptable, 
+	 * this will be returned to the customer without involving the System,
+	 * presumably handled in hardware." What I mean by "invalid bill" is
+	 * a bill that does not meet the set denominations of bills that the machine
+	 * can accept.
+	 * 
+	 * Expected Result: The bill slot observer should call the 
+	 * reactToBillEjectedEvent method an eject the bill from the machine.
+	 */
 	@Test
 	public void addInvalidBill() {
 		billObserver = new MyBillSlotObserver();
 		try {
 			selfCheckoutStation.billInput.register(billObserver);
-			selfCheckoutStation.billInput.accept(bill);
+			selfCheckoutStation.billInput.accept(billHundred);
 			assertEquals(selfCheckoutStation.billInput,billObserver.device);
+			assertEquals(null,selfCheckoutStation.billDispensers.get(5).size());
 		} catch (DisabledException e) {
 			return;
 		} catch (OverloadException e) {
 			return;
 		}
+	}
+	
+	@Test
+	public void signals() {
 	}
 
 	
