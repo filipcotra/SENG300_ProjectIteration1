@@ -1,4 +1,5 @@
 package com.autovend.software.test;
+import static org.junit.Assert.assertEquals;
 /*
  * Open issues:
  * 1. The hardware has to handle invalid cash, to reject it without involving the control software.
@@ -26,6 +27,7 @@ import com.autovend.devices.SelfCheckoutStation;
 import com.autovend.software.AttendantIO;
 import com.autovend.software.CustomerIO;
 import com.autovend.software.PaymentControllerLogic;
+//import com.autovend.software.test.ReceiptPrinterTestH.MyReceiptPrinterObserver;
 import com.autovend.devices.AbstractDevice;
 import com.autovend.devices.observers.AbstractDeviceObserver;
 import com.autovend.devices.observers.BillSlotObserver;
@@ -34,6 +36,7 @@ public class PaymentWithCashTest {
 
 	PaymentControllerLogic paymentController;
 	SelfCheckoutStation selfCheckoutStation;
+	public MyBillSlotObserver billObserver;
 	BillSlot billSlot;
 	Bill bill;
 	
@@ -88,27 +91,31 @@ public class PaymentWithCashTest {
 	
 	class MyBillSlotObserver implements BillSlotObserver{
 
+		public AbstractDevice<? extends AbstractDeviceObserver> device = null;
+		
 		@Override
 		public void reactToEnabledEvent(AbstractDevice<? extends AbstractDeviceObserver> device) {
 			// TODO Auto-generated method stub
-			
+			this.device = device;
 		}
 
 		@Override
 		public void reactToDisabledEvent(AbstractDevice<? extends AbstractDeviceObserver> device) {
 			// TODO Auto-generated method stub
-			
+			this.device = device;
 		}
 
 		@Override
 		public void reactToBillInsertedEvent(BillSlot slot) {
 			// TODO Auto-generated method stub
-			
+			this.device = slot;
 		}
 
 		@Override
 		public void reactToBillEjectedEvent(BillSlot slot) {
 			// TODO Auto-generated method stub
+			this.device = slot;
+			System.out.println("Bill has been ejected from the bill slot.");
 			
 			
 		}
@@ -116,15 +123,15 @@ public class PaymentWithCashTest {
 		@Override
 		public void reactToBillRemovedEvent(BillSlot slot) {
 			// TODO Auto-generated method stub
-			
+			this.device = slot;
 		}
 		
 	}
 	
 	@Before
 	public void setUp() {
-		bill = new Bill(25, Currency.getInstance("CAD"));
-		selfCheckoutStation = new SelfCheckoutStation(Currency.getInstance("CAD"), new int[] {5,10,20}, 
+		bill = new Bill(100, Currency.getInstance("CAD"));
+		selfCheckoutStation = new SelfCheckoutStation(Currency.getInstance("CAD"), new int[] {5,10,20,50}, 
 				new BigDecimal[] {new BigDecimal(1),new BigDecimal(2)}, 10000, 5);
 		paymentController = new PaymentControllerLogic(selfCheckoutStation, new MyCustomerIO(), new MyAttendantIO(), null);
 		
@@ -134,14 +141,15 @@ public class PaymentWithCashTest {
 	
 	@Test
 	public void addInvalidBill() {
+		billObserver = new MyBillSlotObserver();
 		try {
+			selfCheckoutStation.billInput.register(billObserver);
 			selfCheckoutStation.billInput.accept(bill);
+			assertEquals(selfCheckoutStation.billInput,billObserver.device);
 		} catch (DisabledException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			return;
 		} catch (OverloadException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			return;
 		}
 	}
 
