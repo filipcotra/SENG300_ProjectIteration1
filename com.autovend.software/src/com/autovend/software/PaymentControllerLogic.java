@@ -148,7 +148,7 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 	 */
 	
 	public void setCartTotal(double total) {
-		this.cartTotal += total;
+		this.cartTotal = total;
 	}
 
 	/**
