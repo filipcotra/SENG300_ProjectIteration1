@@ -111,9 +111,10 @@ public class ReceiptPrinterTest {
 	
 	@Test
 	public void printNoChange(){
-		change = "0.01";
-		amountPaid = "75.1";
+		change = "0.00";
+		amountPaid = "75.00";
 		receiptPrinterController.print(itemNameList, itemCostList, change, amountPaid);
-		assertEquals("item1\nitem2\nitem3\nTotal:\nPaid: 75", selfCheckoutStation.printer.removeReceipt());
+		//assertEquals("32.00", receiptPrinterController.getTotalVal());
+		assertEquals("item1\nitem2\nitem3\nTotal: 42.00\nPaid: 75.00\n\nChange: 0.00", selfCheckoutStation.printer.removeReceipt());
 	}
 }

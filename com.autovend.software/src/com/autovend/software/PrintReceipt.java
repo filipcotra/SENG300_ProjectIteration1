@@ -22,7 +22,7 @@ import com.autovend.devices.observers.ReceiptPrinterObserver;
 public class PrintReceipt implements ReceiptPrinterObserver {
 
 	ReceiptPrinter printer;
-	int totalVal = 0; // Total value of the items
+	double totalVal; // Total value of the items
 	String amountPaidbyUser = "";
 	String changeNeeded = "";
 	CustomerIO customer;
@@ -46,6 +46,14 @@ public class PrintReceipt implements ReceiptPrinterObserver {
 		this.attendant = a;
 	}
 
+	public void setTotalVal(double totalVal) {
+		this.totalVal = totalVal;
+	}
+	
+	public double getTotalVal() {
+		return this.totalVal;
+	}
+	
 	/**
 	 * The method that prints out the receipt for the customer. Starts by printing
 	 * the items and their corresponding prices, and then the total, amount paid by
@@ -58,21 +66,17 @@ public class PrintReceipt implements ReceiptPrinterObserver {
 	 */
 	public void print(ArrayList<String> items, ArrayList<String> prices, String change, String amountPaid) {
 		try {
-
+			
 			// Print the items and prices
-			for (int i = 0; i < items.size(); i++) {
+						for (int i = 0; i < items.size(); i++) {
 
-				for (int j = 0; j < items.get(i).length(); j++) {
-					printer.print(items.get(i).charAt(j));
-				}
-				for (int k = 0; k < items.get(i).length(); k++) {
-					printer.print(prices.get(i).charAt(k));
-					totalVal += (Double.parseDouble(prices.get(i)));
-				}
-
-				// Print a newline character after each item
-				printer.print('\n');
-			}
+							for (int k = 0; k < items.get(i).length(); k++) {
+								printer.print(items.get(i).charAt(k));
+							}
+							setTotalVal(totalVal += (Double.parseDouble(prices.get(i))));
+							// Print a newline character after each item
+							printer.print('\n');
+						}
 
 			// Printing the total val
 			printer.print('T');
@@ -83,7 +87,11 @@ public class PrintReceipt implements ReceiptPrinterObserver {
 			printer.print(':');
 			printer.print(' ');
 			// Print the total as a character
-			printer.print(Character.forDigit(totalVal, 10));
+			String strTotalVal = Double.toString(totalVal);
+			//strTotalVal = String.format("%.2f", strTotalVal);
+			for (int i = 0; i < strTotalVal.length(); i++) {
+				printer.print(strTotalVal.charAt(i));
+			}
 
 			// Print a newline character after the total
 			printer.print('\n');
@@ -111,7 +119,7 @@ public class PrintReceipt implements ReceiptPrinterObserver {
 
 			// Printing a newline character
 			printer.print('\n');
-
+			
 			// Change Due
 			printer.print('C');
 			printer.print('h');
