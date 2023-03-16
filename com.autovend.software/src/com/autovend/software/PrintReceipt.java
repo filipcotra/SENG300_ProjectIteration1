@@ -73,6 +73,16 @@ public class PrintReceipt implements ReceiptPrinterObserver {
 							for (int k = 0; k < items.get(i).length(); k++) {
 								printer.print(items.get(i).charAt(k));
 							}
+							printer.print(' ');
+							printer.print(' ');
+							printer.print(' ');
+							printer.print(' ');
+							printer.print(' ');
+							printer.print(' ');
+							printer.print('$');
+							for (int k = 0; k < prices.get(i).length(); k++) {
+								printer.print(prices.get(i).charAt(k));
+							}
 							setTotalVal(totalVal += (Double.parseDouble(prices.get(i))));
 							// Print a newline character after each item
 							printer.print('\n');
@@ -88,7 +98,10 @@ public class PrintReceipt implements ReceiptPrinterObserver {
 			printer.print(' ');
 			// Print the total as a character
 			String strTotalVal = Double.toString(totalVal);
-			//if(strTotalVal.charAt(strTotalVal.length()-1).equals)
+			if(strTotalVal.charAt(strTotalVal.length()-1) == '0')
+			{
+				strTotalVal += '0';
+			}
 			for (int i = 0; i < strTotalVal.length(); i++) {
 				printer.print(strTotalVal.charAt(i));
 			}
@@ -167,7 +180,7 @@ public class PrintReceipt implements ReceiptPrinterObserver {
 
 	@Override
 	public void reactToInkAddedEvent(ReceiptPrinter printer) {
-		System.out.println("Ink added to printer");
+		//System.out.println("Ink added to printer");
 	}
 
 	// Implement methods from the AbstractDeviceObserver interface (unused in this
