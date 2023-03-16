@@ -13,33 +13,33 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Currency;
-import java.util.LinkedList;
-import java.util.Queue;
 
 import org.junit.Before;
 import org.junit.Test;
 
 import com.autovend.BarcodedUnit;
 import com.autovend.Bill;
+import com.autovend.devices.AbstractDevice;
 import com.autovend.devices.BillSlot;
 import com.autovend.devices.DisabledException;
 import com.autovend.devices.OverloadException;
 import com.autovend.devices.SelfCheckoutStation;
 import com.autovend.devices.SimulationException;
+import com.autovend.devices.observers.AbstractDeviceObserver;
+import com.autovend.devices.observers.BillSlotObserver;
 import com.autovend.software.AttendantIO;
 import com.autovend.software.CustomerIO;
 import com.autovend.software.PaymentControllerLogic;
-import com.autovend.devices.AbstractDevice;
-import com.autovend.devices.observers.AbstractDeviceObserver;
-import com.autovend.devices.observers.BillSlotObserver;
+import com.autovend.software.PrintReceipt;
 
 public class PaymentWithCashTest {
 
 	PaymentControllerLogic paymentController;
+	PrintReceipt receiptPrinterController;
 	SelfCheckoutStation selfCheckoutStation;
 	MyBillSlotObserver billObserver;
+	MyCustomerIO customer;
 	MyAttendantIO attendant;
 	Bill[] fiveDollarBills;
 	Bill[] tenDollarBills;
@@ -150,6 +150,7 @@ public class PaymentWithCashTest {
 		billHundred = new Bill(100, Currency.getInstance("CAD"));
 		selfCheckoutStation = new SelfCheckoutStation(Currency.getInstance("CAD"), new int[] {5,10,20,50}, 
 				new BigDecimal[] {new BigDecimal(1),new BigDecimal(2)}, 10000, 5);
+		customer = new MyCustomerIO();
 		attendant = new MyAttendantIO();
 		
 		/* Load one hundred, $5, $10, $20, $50 bills into the dispensers so we can dispense change during tests.
@@ -177,7 +178,8 @@ public class PaymentWithCashTest {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		paymentController = new PaymentControllerLogic(selfCheckoutStation, new MyCustomerIO(), attendant, null);
+		receiptPrinterController = new PrintReceipt(selfCheckoutStation.printer, customer, attendant);
+		paymentController = new PaymentControllerLogic(selfCheckoutStation, customer, attendant, receiptPrinterController);
 		paymentController.setCartTotal(0);
 		
 	}
@@ -289,16 +291,13 @@ public class PaymentWithCashTest {
 			selfCheckoutStation.billInput.accept(billFifty);
 			assertEquals(0.00,paymentController.getCartTotal(),0.00);
 			assertEquals("50",paymentController.getAmountPaid());
-			assertEquals("0.00",paymentController.getTotalChange());
+			assertEquals("0.0",paymentController.getTotalChange());
 			
 		} catch (DisabledException e) {
 			fail("A Disabled Exception should not have been thrown");
 		} catch (OverloadException e) {
 			fail("An OverloadException should not have been thrown");
-		} catch (NullPointerException e) {
-			return;
-		}
-		fail("Expected a NullPointerException");
+		} 
 	}
 	
 	/* Test Case: The customer pays over the total cart amount. 
@@ -323,16 +322,13 @@ public class PaymentWithCashTest {
 			selfCheckoutStation.billInput.accept(billFifty);
 			assertEquals(0.00,paymentController.getCartTotal(),0.00);
 			assertEquals("50",paymentController.getAmountPaid());
-			assertEquals("40.00",paymentController.getTotalChange());
+			assertEquals("40.0",paymentController.getTotalChange());
 			
 		} catch (DisabledException e) {
 			fail("A Disabled Exception should not have been thrown");
 		} catch (OverloadException e) {
 			fail("An OverloadException should not have been thrown");
-		} catch (NullPointerException e) {
-			return;
-		}
-		fail("Expected a NullPointerException");
+		} 
 	}
 
 	
