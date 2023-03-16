@@ -58,7 +58,7 @@ public class PrintReceipt implements ReceiptPrinterObserver {
 	 */
 	public void print(ArrayList<String> items, ArrayList<String> prices, String change, String amountPaid) {
 		try {
-			
+
 			// Print the items and prices
 			for (int i = 0; i < items.size(); i++) {
 
@@ -111,7 +111,7 @@ public class PrintReceipt implements ReceiptPrinterObserver {
 
 			// Printing a newline character
 			printer.print('\n');
-			
+
 			// Change Due
 			printer.print('C');
 			printer.print('h');
