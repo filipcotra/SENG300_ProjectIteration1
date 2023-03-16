@@ -28,6 +28,7 @@ import com.autovend.devices.observers.BillDispenserObserver;
 import com.autovend.devices.observers.BillSlotObserver;
 import com.autovend.devices.observers.BillStorageObserver;
 import com.autovend.devices.SelfCheckoutStation;
+import com.autovend.devices.SimulationException;
 
 /**
  * Control software for payment use-cases in self checkout station.
@@ -185,14 +186,14 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 	 * @param change
 	 * 		amount of change that is due
 	 */
-	private void setChangeDue(double change) {
+	public void setChangeDue(double change) {
 		this.changeDue = change;
 	}
 	
 	/**
 	 * Getter for cartTotal. Returns double. No need to call from any other class.
 	 */
-	private double getChangeDue() {
+	public double getChangeDue() {
 		return this.changeDue;
 	}
 
@@ -223,6 +224,9 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 	 * (Step 7)
 	 */
 	public void dispenseChange() {
+		if(this.getChangeDue() == 0) {
+			throw new SimulationException(new Exception("This should never happen"));
+		}
 		BillDispenser dispenser;
 		/** Go through denominations backwards, largest to smallest */
 		for(int index = this.denominations.length-1 ; index >= 0 ; index--) {
@@ -372,6 +376,10 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 		// TODO Auto-generated method stub	
 	}
 
+	/**
+	 * This is informing the customer that they have to remove the
+	 * bill dangling from the slot.
+	 */
 	@Override
 	public void reactToBillEjectedEvent(BillSlot slot) {
 		this.myCustomer.removeBill(slot);
