@@ -88,7 +88,7 @@ public class PrintReceipt implements ReceiptPrinterObserver {
 			printer.print(' ');
 			// Print the total as a character
 			String strTotalVal = Double.toString(totalVal);
-			//strTotalVal = String.format("%.2f", strTotalVal);
+			//if(strTotalVal.charAt(strTotalVal.length()-1).equals)
 			for (int i = 0; i < strTotalVal.length(); i++) {
 				printer.print(strTotalVal.charAt(i));
 			}
