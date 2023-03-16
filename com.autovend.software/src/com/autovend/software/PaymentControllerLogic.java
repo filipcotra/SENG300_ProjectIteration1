@@ -223,7 +223,7 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 		for(int index = this.denominations.length-1 ; index >= 0 ; index--) {
 			dispenser = this.dispensers.get(this.denominations[index]);
 			/** If the value of the bill is less than or equal to the change and change is payable */
-			if((this.denominations[index] <= this.getChangeDue())&&(this.getChangeDue()>this.minDenom)) {
+			if((this.denominations[index] <= this.getChangeDue())&&(this.getChangeDue()>=this.minDenom)) {
 				/** If this dispenser carries the largest denomination, emit immediately */
 				if(this.denominations[index] == this.maxDenom) {
 					try {
