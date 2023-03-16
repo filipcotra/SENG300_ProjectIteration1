@@ -181,7 +181,7 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 	 * 		amount of change that is due
 	 */
 	private void setChangeDue(double change) {
-		this.cartTotal = change;
+		this.changeDue = change;
 	}
 	
 	/**
