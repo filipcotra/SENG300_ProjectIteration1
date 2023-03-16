@@ -102,7 +102,7 @@ public class AddItemByScanningTest {
 		}
 		
 		addItemByScanningController = new AddItemByScanningController(selfCheckoutStation, new MyCustomerIO(), 
-				new MyAttendantIO());
+				new MyAttendantIO(), null);
 		
 		addItemByScanningController.addItemByScanning();
 	}
