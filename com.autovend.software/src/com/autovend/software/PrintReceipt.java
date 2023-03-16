@@ -73,6 +73,7 @@ public class PrintReceipt implements ReceiptPrinterObserver {
 							for (int k = 0; k < items.get(i).length(); k++) {
 								printer.print(items.get(i).charAt(k));
 							}
+							
 							// Creating some spacing between the items and their respective prices.
 							printer.print(' ');
 							printer.print(' ');
@@ -81,6 +82,7 @@ public class PrintReceipt implements ReceiptPrinterObserver {
 							printer.print(' ');
 							printer.print(' ');
 							printer.print('$');
+							
 							for (int k = 0; k < prices.get(i).length(); k++) {
 								printer.print(prices.get(i).charAt(k));
 							}

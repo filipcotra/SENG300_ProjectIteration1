@@ -133,16 +133,16 @@ public class ReceiptPrinterTest {
 			selfCheckoutStation.printer.addInk(1048576);
 			selfCheckoutStation.printer.addPaper(1024);
 		} catch (OverloadException e) {}
-		change = "10.00";
-		amountPaid = "40.00";
+		change = "3.00";
+		amountPaid = "45.00";
 		receiptPrinterController.print(itemNameList, itemCostList, change, amountPaid);
 		assertEquals(
 				  "item 1      $5.00\n"
 				+ "item 2      $17.00\n"
 				+ "item 3      $20.00\n"
 				+ "Total: $42.00\n"
-				+ "Paid: $40.00\n\n"
-				+ "Change: $10.00\n",
+				+ "Paid: $45.00\n\n"
+				+ "Change: $3.00\n",
 				selfCheckoutStation.printer.removeReceipt());;
 	}
 	
