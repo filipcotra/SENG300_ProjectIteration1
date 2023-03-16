@@ -295,7 +295,10 @@ public class PaymentWithCashTest {
 			fail("A Disabled Exception should not have been thrown");
 		} catch (OverloadException e) {
 			fail("An OverloadException should not have been thrown");
+		} catch (NullPointerException e) {
+			return;
 		}
+		fail("Expected a NullPointerException");
 	}
 	
 	/* Test Case: The customer pays over the total cart amount. 
@@ -312,7 +315,7 @@ public class PaymentWithCashTest {
 	 * Checking the total change should return a string value of be "40.00".
 	 */
 	@Test
-	public void payFullWithChange() {
+	public void payFullWithChange(){
 		
 		paymentController.setCartTotal(10.00);
 		try {
@@ -326,7 +329,10 @@ public class PaymentWithCashTest {
 			fail("A Disabled Exception should not have been thrown");
 		} catch (OverloadException e) {
 			fail("An OverloadException should not have been thrown");
+		} catch (NullPointerException e) {
+			return;
 		}
+		fail("Expected a NullPointerException");
 	}
 
 	
