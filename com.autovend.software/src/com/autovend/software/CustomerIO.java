@@ -9,6 +9,7 @@
 package com.autovend.software;
 
 import com.autovend.BarcodedUnit;
+import com.autovend.devices.BillSlot;
 
 /**
  * This interface can be used in testing to simulate customer interactions in certain use cases.
@@ -46,4 +47,9 @@ public interface CustomerIO {
 	 * customer, ending the current session and getting ready for the next one. 
 	 */
 	public void thankCustomer();
+	
+	/**
+	 * Simulates the customer removing the bill from the slot
+	 */
+	public void removeBill(BillSlot slot);
 }

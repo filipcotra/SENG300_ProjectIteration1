@@ -18,12 +18,14 @@ import java.util.Collections;
 import com.autovend.Bill;
 import com.autovend.devices.AbstractDevice;
 import com.autovend.devices.BillDispenser;
+import com.autovend.devices.BillSlot;
 import com.autovend.devices.BillValidator;
 import com.autovend.devices.EmptyException;
 import com.autovend.devices.ReceiptPrinter;
 import com.autovend.devices.observers.AbstractDeviceObserver;
 import com.autovend.devices.observers.BillValidatorObserver;
 import com.autovend.devices.observers.BillDispenserObserver;
+import com.autovend.devices.observers.BillSlotObserver;
 import com.autovend.devices.observers.BillStorageObserver;
 import com.autovend.devices.SelfCheckoutStation;
 
@@ -32,7 +34,7 @@ import com.autovend.devices.SelfCheckoutStation;
  * 
  * @author Filip Cotra
  */
-public class PaymentControllerLogic implements BillValidatorObserver, BillDispenserObserver {
+public class PaymentControllerLogic implements BillValidatorObserver, BillDispenserObserver, BillSlotObserver {
 	private double cartTotal;
 	private double changeDue;
 	private SelfCheckoutStation station;
@@ -48,6 +50,7 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 	private ArrayList<String> itemCostList = new ArrayList<String>();
 	private int amountPaid;
 	private double totalChange;
+	private BillSlot output;
 	
 	/**
 	 * Constructor. Takes a Self-Checkout Station  and initializes
@@ -79,6 +82,8 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 		this.myAttendant = attendant;
 		this.printerLogic = printerLogic;
 		this.amountPaid = 0;
+		this.output = station.billOutput;
+		this.output.register(this);
 	}
 	
 	/**
@@ -228,7 +233,6 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 				if(this.denominations[index] == this.maxDenom) {
 					try {
 						dispenser.emit();
-						/** Incrementing value so that the same denomination will be checked again */	
 						index++;
 					}
 					catch(EmptyException ee) {
@@ -257,6 +261,7 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 						}
 					}
 					catch(Exception e) {
+						e.printStackTrace();
 						// Unspecified functionality
 					}
 				}
@@ -344,7 +349,7 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 	@Override
 	public void reactToBillRemovedEvent(BillDispenser dispenser, Bill bill) {
 		this.setChangeDue(this.getChangeDue()-bill.getValue());
-		if(this.getChangeDue() > 0) {
+		if(this.getChangeDue() > 0.00) {
 			this.dispenseChange();
 		}
 		else {
@@ -361,7 +366,19 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 	public void reactToBillsUnloadedEvent(BillDispenser dispenser, Bill... bills) {
 		// Ignoring in this iteration
 	}
-	
-	
-	
+
+	@Override
+	public void reactToBillInsertedEvent(BillSlot slot) {
+		// TODO Auto-generated method stub	
+	}
+
+	@Override
+	public void reactToBillEjectedEvent(BillSlot slot) {
+		this.myCustomer.removeBill(slot);
+	}
+
+	@Override
+	public void reactToBillRemovedEvent(BillSlot slot) {
+		// TODO Auto-generated method stub
+	}
 }

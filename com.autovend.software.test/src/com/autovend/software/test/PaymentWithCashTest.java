@@ -77,6 +77,11 @@ public class PaymentWithCashTest {
 			// TODO Auto-generated method stub
 			
 		}
+		
+		@Override
+		public void removeBill(BillSlot slot) {
+			slot.removeDanglingBill();
+		}
 	
 	}
 	
@@ -126,6 +131,7 @@ public class PaymentWithCashTest {
 		@Override
 		public void reactToBillEjectedEvent(BillSlot slot) {
 			// TODO Auto-generated method stub
+			slot.removeDanglingBill();
 			this.device = slot;
 			System.out.println("Bill has been ejected from the bill slot.");
 			
@@ -319,6 +325,7 @@ public class PaymentWithCashTest {
 		paymentController.setCartTotal(10.00);
 		try {
 			// The customer pays the full fifty dollars using a single fifty dollar bill.
+			System.out.println("Payment: " + billFifty.getValue());
 			selfCheckoutStation.billInput.accept(billFifty);
 			assertEquals(0.00,paymentController.getCartTotal(),0.00);
 			assertEquals("50",paymentController.getAmountPaid());
@@ -330,6 +337,5 @@ public class PaymentWithCashTest {
 			fail("An OverloadException should not have been thrown");
 		} 
 	}
-
 
 }
