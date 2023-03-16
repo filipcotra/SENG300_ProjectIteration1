@@ -243,6 +243,7 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 					/** Since this is smaller than the change due but largest as we are moving backwards, just emit */
 					try {
 						dispenser.emit();
+						index++;
 					}
 					/** If empty and not the smallest denom, move on. If the smallest denom, inform attendant */
 					catch(EmptyException e) {
