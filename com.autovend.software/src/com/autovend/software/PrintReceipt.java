@@ -60,19 +60,19 @@ public class PrintReceipt implements ReceiptPrinterObserver {
 		try {
 			
 			// Print the items and prices
-						for (int i = 0; i < items.size(); i++) {
+			for (int i = 0; i < items.size(); i++) {
 
-							for (int j = 0; j < items.get(i).length(); j++) {
-								printer.print(items.get(i).charAt(j));
-							}
-							for (int k = 0; k < items.get(i).length(); k++) {
-								printer.print(items.get(i).charAt(k));
-								totalVal += (Integer.parseInt(amountPaid));
-							}
-							
-							// Print a newline character after each item
-							printer.print('\n');
-						}
+				for (int j = 0; j < items.get(i).length(); j++) {
+					printer.print(items.get(i).charAt(j));
+				}
+				for (int k = 0; k < items.get(i).length(); k++) {
+					printer.print(prices.get(i).charAt(k));
+					totalVal += (Double.parseDouble(amountPaid));
+				}
+
+				// Print a newline character after each item
+				printer.print('\n');
+			}
 
 			// Printing the total val
 			printer.print('T');
