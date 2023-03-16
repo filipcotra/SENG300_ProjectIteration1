@@ -31,7 +31,9 @@ public class ReceiptPrinterTest {
 	ArrayList<String> itemCostList;
 	String change;
 	String amountPaid;
-	
+	String itemFmt1;
+	String itemFmt2;
+	String itemFmt3;
 	class MyCustomerIO implements CustomerIO {
 			
 			@Override
@@ -100,8 +102,8 @@ public class ReceiptPrinterTest {
 		customer = new MyCustomerIO();
 		attendant = new MyAttendantIO();
 		
-		
 		receiptPrinterController = new PrintReceipt(selfCheckoutStation.printer, customer, attendant);
+		
 	}
 	
 	@Test
@@ -114,7 +116,14 @@ public class ReceiptPrinterTest {
 		change = "0.00";
 		amountPaid = "75.00";
 		receiptPrinterController.print(itemNameList, itemCostList, change, amountPaid);
-		assertEquals("item1\nitem2\nitem3\nTotal: 42.00\nPaid: 75.00\n\nChange: 0.00\n", selfCheckoutStation.printer.removeReceipt());
+		assertEquals(
+				  "item 1      $5.00\n"
+				+ "item 2      $17.00\n"
+				+ "item 3      $20.00\n"
+				+ "Total: $42.00\n"
+				+ "Paid: $75.00\n\n"
+				+ "Change: $0.00\n",
+				selfCheckoutStation.printer.removeReceipt());
 	}
 	
 	@Test
@@ -127,7 +136,14 @@ public class ReceiptPrinterTest {
 		change = "10.00";
 		amountPaid = "40.00";
 		receiptPrinterController.print(itemNameList, itemCostList, change, amountPaid);
-		assertEquals("item1\nitem2\nitem3\nTotal: 42.00\nPaid: 40.00\n\nChange: 10.00\n", selfCheckoutStation.printer.removeReceipt());
+		assertEquals(
+				  "item 1      $5.00\n"
+				+ "item 2      $17.00\n"
+				+ "item 3      $20.00\n"
+				+ "Total: $42.00\n"
+				+ "Paid: $40.00\n\n"
+				+ "Change: $10.00\n",
+				selfCheckoutStation.printer.removeReceipt());;
 	}
 	
 	@Test

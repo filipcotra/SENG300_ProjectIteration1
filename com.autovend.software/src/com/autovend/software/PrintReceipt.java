@@ -73,6 +73,7 @@ public class PrintReceipt implements ReceiptPrinterObserver {
 							for (int k = 0; k < items.get(i).length(); k++) {
 								printer.print(items.get(i).charAt(k));
 							}
+							// Creating some spacing between the items and their respective prices.
 							printer.print(' ');
 							printer.print(' ');
 							printer.print(' ');
@@ -96,6 +97,7 @@ public class PrintReceipt implements ReceiptPrinterObserver {
 			printer.print('l');
 			printer.print(':');
 			printer.print(' ');
+			printer.print('$');
 			// Print the total as a character
 			String strTotalVal = Double.toString(totalVal);
 			if(strTotalVal.charAt(strTotalVal.length()-1) == '0')
@@ -116,6 +118,7 @@ public class PrintReceipt implements ReceiptPrinterObserver {
 			printer.print('d');
 			printer.print(':');
 			printer.print(' ');
+			printer.print('$');
 
 			// Taking the total amount paid by the user and printing it
 			for (int l = 0; l < amountPaid.length(); l++) {
@@ -142,6 +145,7 @@ public class PrintReceipt implements ReceiptPrinterObserver {
 			printer.print('e');
 			printer.print(':');
 			printer.print(' ');
+			printer.print('$');
 
 			// Printing the change due
 			for (int m = 0; m < change.length(); m++) {
@@ -166,13 +170,13 @@ public class PrintReceipt implements ReceiptPrinterObserver {
 
 	// Implement methods from the ReceiptPrinterObserver interface
 
-	// Print duplicate receipt for the attendanct if the printer is out of paper
+	// Print duplicate receipt for the attendant if the printer is out of paper
 	@Override
 	public void reactToOutOfInkEvent(ReceiptPrinter printer) {
 		this.attendant.printDuplicateReceipt();
 	}
 
-	// Print duplicate receipt for the attendanct if the printer is out of ink
+	// Print duplicate receipt for the attendant if the printer is out of ink
 	@Override
 	public void reactToOutOfPaperEvent(ReceiptPrinter printer) {
 		this.attendant.printDuplicateReceipt();
