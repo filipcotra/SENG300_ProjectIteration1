@@ -155,6 +155,7 @@ public class ReceiptPrinterTest {
 		amountPaid = "75.00";
 		receiptPrinterController.print(itemNameList, itemCostList, change, amountPaid);
 		assertEquals(null, selfCheckoutStation.printer.removeReceipt());
+		//assertEquals(new MyAttendantIO().printDuplicateReceipt(),this.attendant.printDuplicateReceipt());
 	}
 	
 	@Test
