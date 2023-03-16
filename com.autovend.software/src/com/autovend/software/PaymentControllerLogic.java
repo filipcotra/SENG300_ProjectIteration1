@@ -148,7 +148,12 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 	 */
 	
 	public void setCartTotal(double total) {
-		this.cartTotal = total;
+		if(total <= 0.00) {
+			this.cartTotal = 0.00;
+		}
+		else {
+			this.cartTotal = total;
+		}
 	}
 
 	/**
@@ -279,7 +284,7 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 		myCustomer.showUpdatedTotal(this.getCartTotal());
 		/** If the customer has paid their cart, check for change */
 		if(this.getCartTotal() <= 0) {
-			this.setChangeDue(0.0 - this.getCartTotal());
+			this.setChangeDue(0.00 - this.getCartTotal());
 			this.setTotalChange(this.getChangeDue());
 			if(this.getChangeDue() > 0) {
 				this.dispenseChange();
