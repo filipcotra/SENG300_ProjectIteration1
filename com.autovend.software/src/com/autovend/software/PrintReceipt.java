@@ -31,19 +31,20 @@ public class PrintReceipt implements ReceiptPrinterObserver {
 	SelfCheckoutStation station;
 	boolean flagInk = true;
 	boolean flagPaper = true;
-	char[] totalChars = {'T','o','t','a','l',':',' ','$'};
-	char[] paidChars = {'P','a','i','d',':',' ','$'};
-	char[] changeChars = {'C','h','a','n','g','e',':',' ','$'};
-	char[] priceSpace = {' ',' ',' ',' ',' ',' ','$'};
+	char[] totalChars = { 'T', 'o', 't', 'a', 'l', ':', ' ', '$' };
+	char[] paidChars = { 'P', 'a', 'i', 'd', ':', ' ', '$' };
+	char[] changeChars = { 'C', 'h', 'a', 'n', 'g', 'e', ':', ' ', '$' };
+	char[] priceSpace = { ' ', ' ', ' ', ' ', ' ', ' ', '$' };
 
 	/**
 	 * Initialize a printer for the Print Receipt use case. Also registers this
 	 * class as an observer for the station's main scanner.
 	 * 
+	 * @param station The Self Checkout Station being used
 	 * @param printer The Receipt Printer to be used
-	 * @param c       The customer that is interacting with the Print Receipt use
+	 * @param c       The Customer that is interacting with the Print Receipt use
 	 *                case
-	 * @param a       The attendant that is interacting with the Print Receipt use
+	 * @param a       The Attendant that is interacting with the Print Receipt use
 	 *                case
 	 */
 	public PrintReceipt(SelfCheckoutStation station, ReceiptPrinter printer, CustomerIO c, AttendantIO a) {
@@ -55,10 +56,20 @@ public class PrintReceipt implements ReceiptPrinterObserver {
 		this.attendant = a;
 	}
 
+	/**
+	 * Sets the total value
+	 * 
+	 * @param totalVal The total value of all the items scanned by the customer
+	 */
 	public void setTotalVal(double totalVal) {
 		this.totalVal = totalVal;
 	}
 
+	/**
+	 * Gets the total value
+	 * 
+	 * @return totalVal The total value of all the items scanned by the customer
+	 */
 	public double getTotalVal() {
 		return this.totalVal;
 	}
@@ -80,44 +91,53 @@ public class PrintReceipt implements ReceiptPrinterObserver {
 	/**
 	 * The method that prints out the receipt for the customer. Starts by printing
 	 * the items and their corresponding prices, and then the total, amount paid by
-	 * the customer, and the change they were given. Before print is called, each time
-	 * flags for paper and ink should be checked.
+	 * the customer, and the change they were given. Before print is called, each
+	 * time flags for paper and ink should be checked.
 	 * 
-	 * @param items      the items bought by the customer
-	 * @param prices     the price of the item bought by the customer
-	 * @param change     the change due after the customer has paid
-	 * @param amountPaid the amount that the customer paid
+	 * @param items      The items bought by the customer
+	 * @param prices     The price of the item bought by the customer
+	 * @param change     The change due after the customer has paid
+	 * @param amountPaid The amount that the customer paid
 	 */
 	public void print(ArrayList<String> items, ArrayList<String> prices, String change, String amountPaid) {
 		try {
+
+			// Loops through and prints the item, its price, and the total amount it adds up
+			// to
 			for (int i = 0; i < items.size(); i++) {
+				// Print item name
 				for (int k = 0; k < items.get(i).length(); k++) {
 					this.callPrint(items.get(i).charAt(k));
 				}
 
 				// Creating some spacing between the items and their respective prices.
-				for(char ch : this.priceSpace) {
+				for (char ch : this.priceSpace) {
 					this.callPrint(ch);
 				}
 
+				// Print item price
 				for (int k = 0; k < prices.get(i).length(); k++) {
 					this.callPrint(prices.get(i).charAt(k));
 				}
+
+				// Update totalVal to reflect the new item
 				setTotalVal(totalVal += (Double.parseDouble(prices.get(i))));
 				// Print a newline character after each item
 				this.callPrint('\n');
 			}
 
-			// Printing the total val
-			for(char ch : this.totalChars) {
+			// Printing "Total: $"
+			for (char ch : this.totalChars) {
 				this.callPrint(ch);
 			}
-			
-			// Print the total as a character
+
+			// Storing the totalVal as a string
 			String strTotalVal = Double.toString(totalVal);
 			if (strTotalVal.charAt(strTotalVal.length() - 1) == '0') {
 				strTotalVal += '0';
 			}
+
+			// Printing the amount in totalVal
 			for (int i = 0; i < strTotalVal.length(); i++) {
 				this.callPrint(strTotalVal.charAt(i));
 			}
@@ -125,8 +145,8 @@ public class PrintReceipt implements ReceiptPrinterObserver {
 			// Print a newline character after the total
 			this.callPrint('\n');
 
-			// Printing amount paid
-			for(char ch : this.paidChars) {
+			// Printing "Paid: $"
+			for (char ch : this.paidChars) {
 				this.callPrint(ch);
 			}
 
@@ -146,8 +166,8 @@ public class PrintReceipt implements ReceiptPrinterObserver {
 			// Printing a newline character
 			this.callPrint('\n');
 
-			// Change Due
-			for(char ch : this.changeChars) {
+			// Printing "Change: $"
+			for (char ch : this.changeChars) {
 				this.callPrint(ch);
 			}
 
@@ -166,31 +186,35 @@ public class PrintReceipt implements ReceiptPrinterObserver {
 			// complete.
 			this.customer.thankCustomer();
 		}
-		catch(Exception e) {
+		// Catch any exceptions
+		catch (Exception e) {
 			// Unspecified function
 		}
 	}
 
-	// Method for calling print specifically, connecting software to hardware. This will
-	// be easier than doing it as above.
+	/**
+	 * Method for calling print specifically, connecting software to hardware.
+	 * Checks the ink and paper flags before printing.
+	 */
 	public void callPrint(char ch) throws Exception {
-		if(!(this.flagPaper == false || this.flagInk == false)) {
+		if (!(this.flagPaper == false || this.flagInk == false)) {
 			try {
 				this.printer.print(ch);
-			}
-			catch(Exception e) {
+			} catch (Exception e) {
 				throw e;
 			}
-		}
-		else {
+		} else {
 			// This should hopefully abort the print method
 			throw new Exception();
 		}
 	}
+
 	
 	// Implement methods from the ReceiptPrinterObserver interface
 
-	// Print duplicate receipt for the attendant if the printer is out of paper
+	/**
+	 * Print duplicate receipt for the attendant if the printer is out of paper
+	 */
 	@Override
 	public void reactToOutOfInkEvent(ReceiptPrinter printer) {
 		this.flagInk = false;
@@ -198,7 +222,9 @@ public class PrintReceipt implements ReceiptPrinterObserver {
 		this.attendant.printDuplicateReceipt();
 	}
 
-	// Print duplicate receipt for the attendant if the printer is out of ink
+	/**
+	 * Print duplicate receipt for the attendant if the printer is out of ink
+	 */
 	@Override
 	public void reactToOutOfPaperEvent(ReceiptPrinter printer) {
 		this.flagPaper = false;
@@ -206,6 +232,9 @@ public class PrintReceipt implements ReceiptPrinterObserver {
 		this.attendant.printDuplicateReceipt();
 	}
 
+	/**
+	 * Sets the flagInk to true when ink is added
+	 */
 	@Override
 	public void reactToInkAddedEvent(ReceiptPrinter printer) {
 		flagInk = true;
@@ -218,11 +247,16 @@ public class PrintReceipt implements ReceiptPrinterObserver {
 		// TODO Auto-generated method stub
 	}
 
+	// Implement methods from the AbstractDeviceObserver interface (unused in this
+	// class)
 	@Override
 	public void reactToDisabledEvent(AbstractDevice<? extends AbstractDeviceObserver> device) {
 		// TODO Auto-generated method stub
 	}
 
+	/**
+	 * Sets flagPaper to true when paper is added
+	 */
 	@Override
 	public void reactToPaperAddedEvent(ReceiptPrinter printer) {
 		flagPaper = true;
