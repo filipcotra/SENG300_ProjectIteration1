@@ -141,14 +141,16 @@ public class AddItemByScanningController implements BarcodeScannerObserver, Elec
 	public void reactToWeightChangedEvent(ElectronicScale scale, double weightInGrams) {
 		// Check for weight discrepancy (Exception 1)
 		if (weightInGrams!= this.expectedWeight) {
-			// WEIGHT DISCREPANCY ERROR
-			// If the attendant does not approve of the weight discrepancy, then remove it from the bagging area
+			// Step 1. Block self checkout system (already done)
+			// Step 2. Notify CustomerIO
+			// Step 3. Notify Attendant
+			// Step 4. Attendant approves discrepancy
 			// Attendant interaction required: attendantIO.approveWeightDiscrepancy()
-			if (!attendantIO.approveWeightDiscrepancy()) {
-				this.station.baggingArea.remove(scannedItem); // This line will call an error, don't know how to fix currently 2023-03-17 
+			if (attendantIO.approveWeightDiscrepancy()) {
+				this.unblockSystem(); // Unblock the system (Step 7)
 			}
+			// If they don't approve, then remain blocked
 		}
-		this.unblockSystem(); // Unblock the system (Step 7)
 	}
 	
 	// The methods below are not needed but required by the inherited interfaces
