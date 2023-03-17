@@ -21,12 +21,14 @@ import org.junit.Test;
 import com.autovend.BarcodedUnit;
 import com.autovend.Bill;
 import com.autovend.devices.AbstractDevice;
+import com.autovend.devices.BillDispenser;
 import com.autovend.devices.BillSlot;
 import com.autovend.devices.DisabledException;
 import com.autovend.devices.OverloadException;
 import com.autovend.devices.SelfCheckoutStation;
 import com.autovend.devices.SimulationException;
 import com.autovend.devices.observers.AbstractDeviceObserver;
+import com.autovend.devices.observers.BillDispenserObserver;
 import com.autovend.devices.observers.BillSlotObserver;
 import com.autovend.software.AttendantIO;
 import com.autovend.software.CustomerIO;
@@ -51,6 +53,61 @@ public class PaymentWithCashTest {
 	Bill billTwenty;
 	Bill billFifty;
 	Bill billHundred;
+	
+	
+	
+	class DisenserStub implements BillDispenserObserver {
+
+		@Override
+		public void reactToEnabledEvent(AbstractDevice<? extends AbstractDeviceObserver> device) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void reactToDisabledEvent(AbstractDevice<? extends AbstractDeviceObserver> device) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void reactToBillsFullEvent(BillDispenser dispenser) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void reactToBillsEmptyEvent(BillDispenser dispenser) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void reactToBillAddedEvent(BillDispenser dispenser, Bill bill) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void reactToBillRemovedEvent(BillDispenser dispenser, Bill bill) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void reactToBillsLoadedEvent(BillDispenser dispenser, Bill... bills) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void reactToBillsUnloadedEvent(BillDispenser dispenser, Bill... bills) {
+			// TODO Auto-generated method stub
+			
+		}
+		
+	}
+	
 	
 	class MyCustomerIO implements CustomerIO {
 		
@@ -336,6 +393,68 @@ public class PaymentWithCashTest {
 		} catch (OverloadException e) {
 			fail("An OverloadException should not have been thrown");
 		} 
+	}
+	/* Test Case: The customer pays over the total cart amount by 10 dollars and the total change is dispensed. 
+	 * 
+	 * Description: The cart total is set at $10. $20 is paid in a single bill.
+	 *    
+	 * There is no need to test for payments that would require coins, credit, or crypto.
+	 * Whether or not the cart Total is dropping has been tested already. So its not tested here.
+	 * 
+	 * Expected Result: The total change is calculated to 20-10 = 10
+	 * Checking the total change should return a string value of "10.0".
+	 * Checking the change due should return a double value of be "0.0" which is converted to string.
+	 */
+	@Test
+	public void totalChangeDueTenDollars() throws DisabledException, OverloadException{
+		
+		paymentController.setCartTotal(10.00);
+		selfCheckoutStation.billInput.accept(billTwenty);
+		assertEquals("10.0",paymentController.getTotalChange());
+		// Should get change due be 10 here?
+		paymentController.dispenseChange();
+		assertEquals("0.0",""+paymentController.getChangeDue());			
+		
+	}
+	/* Test Case: The customer pays over the total cart amount by 30 dollars and the total change is dispensed. 
+	 * 
+	 * Description: The cart total is set at $20. $50 is paid in a single bill.
+	 *    
+	 * There is no need to test for payments that would require coins, credit, or crypto.
+	 * Whether or not the cart Total is dropping has been tested already. So its not tested here.
+	 * 
+	 * Expected Result: The total change is calculated to 50-20 = 30
+	 * Checking the total change should return a string value of "30.0".
+	 * Checking the change due should return a double value of be "0.0" which is converted to string.
+	 */
+	@Test
+	public void totalChangeDueThirtyDollars() throws DisabledException, OverloadException{
+		
+		paymentController.setCartTotal(20.00);		
+		selfCheckoutStation.billInput.accept(billFifty);
+		assertEquals("30.0",paymentController.getTotalChange());
+		paymentController.dispenseChange();
+		assertEquals("0.0",""+paymentController.getChangeDue());				
+	}
+	/* Test Case: The customer pays over the total cart amount by 5 dollars and the total change is dispensed. 
+	 * 
+	 * Description: The cart total is set at $45. $50 is paid in a single bill.
+	 *    
+	 * There is no need to test for payments that would require coins, credit, or crypto.
+	 * Whether or not the cart Total is dropping has been tested already. So its not tested here.
+	 * 
+	 * Expected Result: The total change is calculated to 50-45 = 5
+	 * Checking the total change should return a string value of "5.0".
+	 * Checking the change due should return a double value of be "0.0" which is converted to string.
+	 */
+	@Test
+	public void totalChangeDueFiveDollars() throws DisabledException, OverloadException{
+		
+		paymentController.setCartTotal(45.00);		
+		selfCheckoutStation.billInput.accept(billFifty);
+		assertEquals("5.0",paymentController.getTotalChange());
+		paymentController.dispenseChange();
+		assertEquals("0.0",""+paymentController.getChangeDue());				
 	}
 
 }

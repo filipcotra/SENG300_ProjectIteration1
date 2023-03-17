@@ -69,6 +69,12 @@ public class ReceiptPrinterTest {
 			public void removeBill(BillSlot slot) {
 				// TODO Auto-generated method stub	
 			}
+
+			@Override
+			public void removeBill(BillSlot slot) {
+				// TODO Auto-generated method stub
+				
+			}
 		
 		}
 	
@@ -114,7 +120,7 @@ public class ReceiptPrinterTest {
 		customer = new MyCustomerIO();
 		attendant = new MyAttendantIO();
 		
-		receiptPrinterController = new PrintReceipt(selfCheckoutStation.printer, customer, attendant);
+		receiptPrinterController = new PrintReceipt(selfCheckoutStation, selfCheckoutStation.printer, customer, attendant);
 		
 	}
 	
