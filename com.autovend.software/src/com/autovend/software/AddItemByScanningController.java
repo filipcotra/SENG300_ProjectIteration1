@@ -146,8 +146,8 @@ public class AddItemByScanningController implements BarcodeScannerObserver, Elec
 		
 		// Notify Customer I/O to place scanned item in bagging area (Step 5) and notify weight change (Step 6)
 		// Goes to reactToWeightChangedEvent after the line is executed
-		this.scannedItem = this.notifyPlaceItemCustomerIO();
-		this.station.baggingArea.add(this.scannedItem);
+		//this.scannedItem = this.notifyPlaceItemCustomerIO();
+		//this.station.baggingArea.add(this.scannedItem);
 		
 	}
 
