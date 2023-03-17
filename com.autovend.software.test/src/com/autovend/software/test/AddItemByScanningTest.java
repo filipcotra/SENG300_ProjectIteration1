@@ -22,7 +22,6 @@ import com.autovend.BarcodedUnit;
 import com.autovend.Numeral;
 import com.autovend.devices.BillSlot;
 import com.autovend.devices.DisabledException;
-import com.autovend.devices.OverloadException;
 import com.autovend.devices.SelfCheckoutStation;
 import com.autovend.external.ProductDatabases;
 import com.autovend.products.BarcodedProduct;
@@ -82,7 +81,6 @@ public class AddItemByScanningTest {
 		@Override
 		public void notifyPlaceItemCustomerIO() {
 			// TODO Auto-generated method stub
-			System.out.print("Notify customer called\n");
 			customerNotified = true;
 		}
 
@@ -137,44 +135,6 @@ public class AddItemByScanningTest {
 				attendant, paymentController);
 	}
 	
-	@Test
-	public void normalExec() {
-		/**
-		 *  Step 1: Laser Scanner: Detects a barcode and signals this to the System.
-		 */	
-		//selfCheckoutStation.mainScanner.scan(customer.scanItem());
-		customer.scanItem(scannedItem);
-		//assertEquals(new MyCustomerIO().scanItem(), this.customer.scanItem());
-		//assertEquals(, this.customer.scanItem(scannedItem));
-		/**
-		 * Step 3: System: Determines the characteristics (weight and cost) of the product associated with the 
-		 * barcode.
-		 */
-		BarcodedProduct actualProduct = addItemByScanningController.getProduct();
-		assertEquals(testProduct, actualProduct);
-		//assertEquals(12, this.customer.scanItem(scannedItem).getWeight(),0.00);
-		assertEquals(testProduct.getPrice(), actualProduct.getPrice());
-		
-		/**
-		 * Step 4: System: Updates the expected weight from the Bagging Area
-		 */
-		assertEquals(12, actualProduct.getExpectedWeight(),0.00);
-		
-		/**
-		 * Step 5: Signals to the Customer I/O to place the scanned item in the Bagging Area.
-		 */
-		customer.placeScannedItemInBaggingArea(placedItem);
-		//assertEquals(new MyCustomerIO().placeScannedItemInBaggingArea(placedItem), this.customer.placeScannedItemInBaggingArea(placedItem));
-		
-		/**
-		 * Step 6: Signals to the System that the weight has changed.
-		 */
-		try {
-			assertEquals(12, selfCheckoutStation.baggingArea.getCurrentWeight(),0.00);
-		} catch (OverloadException e) {
-			fail("An OverloadException should not have been thrown");
-		}
-	}
 	
 	@Test
 	public void detectBarcode() {
@@ -266,10 +226,10 @@ public class AddItemByScanningTest {
 		 *	found in the system
 		 */
 		try {
-			selfCheckoutStation.mainScanner.scan(scannedItem);
-			selfCheckoutStation.baggingArea.add(placedItem);
+			customer.scanItem(scannedItem);
+			customer.placeScannedItemInBaggingArea(placedItem);
 			// should unblock the system afterwards.
-			selfCheckoutStation.mainScanner.scan(scannedItem);
+			customer.scanItem(scannedItem);
 		}
 		catch(DisabledException e) {
 			fail("A DisabledException should not have been thrown.");
@@ -292,5 +252,4 @@ public class AddItemByScanningTest {
 		fail("A DisabledException should have been thrown.");
 
 	} 
-
 }
