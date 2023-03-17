@@ -140,7 +140,7 @@ public class AddItemByScanningController implements BarcodeScannerObserver, Elec
 	@Override
 	public void reactToWeightChangedEvent(ElectronicScale scale, double weightInGrams) {
 		// Check for weight discrepancy (Exception 1)
-		if (weightInGrams!= this.expectedWeight) {
+		if (weightInGrams != this.expectedWeight) {
 			// Step 1. Block self checkout system (already done)
 			// Step 2. Notify CustomerIO
 			// Step 3. Notify Attendant
@@ -150,6 +150,9 @@ public class AddItemByScanningController implements BarcodeScannerObserver, Elec
 				this.unblockSystem(); // Unblock the system (Step 7)
 			}
 			// If they don't approve, then remain blocked
+			this.blockSystem();
+		} else { // If there is no discrepancy then unblock the system
+			this.unblockSystem(); // Step 7, unblock the system 
 		}
 	}
 	
