@@ -126,7 +126,7 @@ public class AddItemByScanningTest {
 		customer = new MyCustomerIO();
 		attendant = new MyAttendantIO();
 		
-		receiptPrinterController = new PrintReceipt(selfCheckoutStation.printer, customer, attendant);
+		receiptPrinterController = new PrintReceipt(selfCheckoutStation, selfCheckoutStation.printer, customer, attendant);
 		paymentController = new PaymentControllerLogic(selfCheckoutStation, customer, attendant, receiptPrinterController);
 		
 		addItemByScanningController = new AddItemByScanningController(selfCheckoutStation, customer, 

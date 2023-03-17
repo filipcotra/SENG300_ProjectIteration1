@@ -31,8 +31,8 @@ public class ReceiptPrinterTest {
 	MyBillSlotObserver billObserver;
 	MyCustomerIO customer;
 	MyAttendantIO attendant;
-	ArrayList<String> itemNameList;
-	ArrayList<String> itemCostList;
+	ArrayList<String> itemNameList = new ArrayList<String>();
+	ArrayList<String> itemCostList = new ArrayList<String>();
 	String change;
 	String amountPaid;
 	String itemFmt1;
@@ -69,12 +69,6 @@ public class ReceiptPrinterTest {
 			public void removeBill(BillSlot slot) {
 				// TODO Auto-generated method stub	
 			}
-
-			@Override
-			public void removeBill(BillSlot slot) {
-				// TODO Auto-generated method stub
-				
-			}
 		
 		}
 	
@@ -105,15 +99,13 @@ public class ReceiptPrinterTest {
 		System.setOut(ps);
 		// Set up string array lists for items and their respective prices.
 		// List of items:
-		itemNameList = new ArrayList<String>();
-		itemNameList.add("item 1");
-		itemNameList.add("item 2");
-		itemNameList.add("item 3");
+		this.itemNameList.add("item 1");
+		this.itemNameList.add("item 2");
+		this.itemNameList.add("item 3");
 		// List of item prices:
-		itemCostList = new ArrayList<String>();
-		itemCostList.add("5.00");
-		itemCostList.add("17.00");
-		itemCostList.add("20.00");
+		this.itemCostList.add("5.00");
+		this.itemCostList.add("17.00");
+		this.itemCostList.add("20.00");
 		
 		selfCheckoutStation = new SelfCheckoutStation(Currency.getInstance("CAD"), new int[] {5,10,20,50}, 
 				new BigDecimal[] {new BigDecimal(1),new BigDecimal(2)}, 10000, 5);
@@ -142,7 +134,7 @@ public class ReceiptPrinterTest {
 		} catch (OverloadException e) {}
 		change = "0.00";
 		amountPaid = "75.00";
-		receiptPrinterController.print(itemNameList, itemCostList, change, amountPaid);
+		receiptPrinterController.print(this.itemNameList, this.itemCostList, change, amountPaid);
 		assertEquals(
 				  "item 1      $5.00\n"
 				+ "item 2      $17.00\n"
@@ -171,7 +163,7 @@ public class ReceiptPrinterTest {
 		} catch (OverloadException e) {}
 		change = "3.00";
 		amountPaid = "45.00";
-		receiptPrinterController.print(itemNameList, itemCostList, change, amountPaid);
+		receiptPrinterController.print(this.itemNameList, this.itemCostList, change, amountPaid);
 		assertEquals(
 				  "item 1      $5.00\n"
 				+ "item 2      $17.00\n"
@@ -199,9 +191,9 @@ public class ReceiptPrinterTest {
 		} catch (OverloadException e) {}
 		change = "3.00";
 		amountPaid = "45.00";
-		receiptPrinterController.print(itemNameList, itemCostList, change, amountPaid);
+		receiptPrinterController.print(this.itemNameList, this.itemCostList, change, amountPaid);
 		String expected = "thankCustomer Called";
-		assertTrue(expected.equals(baos.toString()));
+		assertEquals(expected,baos.toString());
 	}
 	
 	
@@ -211,7 +203,7 @@ public class ReceiptPrinterTest {
 	 * informed through IO, and the machine should be suspended (meaning that
 	 * a disabled exception should be thrown when attempting to use it
 	 * again).
-	 * Result:
+	 * Result: Test passes.
 	 */
 	@Test (expected = DisabledException.class)
 	public void printRunningOutOfInk_Test(){
@@ -221,12 +213,12 @@ public class ReceiptPrinterTest {
 		} catch (OverloadException e) {}
 		change = "0.00";
 		amountPaid = "75.00";
-		receiptPrinterController.print(itemNameList, itemCostList, change, amountPaid);
+		receiptPrinterController.print(this.itemNameList, this.itemCostList, change, amountPaid);
 		// This is making sure that the printing was aborted, as no receipt is produced
 		assertEquals(null, selfCheckoutStation.printer.removeReceipt());
 		// This is making sure that the attendantIO was called
 		String expected = "printDuplicate Called";
-		assertTrue(expected.equals(baos.toString()));
+		assertEquals(expected, baos.toString());
 		// This is making sure that the system is suspended after running out of ink - disabledException should be thrown
 		// To test this, BarcodeScanner.scan() will be tried, as that is the initiator of software interactions.
 		selfCheckoutStation.mainScanner.scan(null);
@@ -238,9 +230,9 @@ public class ReceiptPrinterTest {
 	 * informed through IO, and the machine should be suspended (meaning that
 	 * a disabled exception should be thrown when attempting to use it
 	 * again).
-	 * Result:
+	 * Result: Test passes.
 	 */
-	@Test
+	@Test (expected = DisabledException.class)
 	public void printRunningOutOfPaper_Test(){
 		try {
 			selfCheckoutStation.printer.addInk(1048576); // Add ink to printer
@@ -248,15 +240,63 @@ public class ReceiptPrinterTest {
 		} catch (OverloadException e) {}
 		change = "0.00";
 		amountPaid = "75.00";
-		receiptPrinterController.print(itemNameList, itemCostList, change, amountPaid);
+		receiptPrinterController.print(this.itemNameList, this.itemCostList, change, amountPaid);
 		assertEquals(null, selfCheckoutStation.printer.removeReceipt());
 		// This is making sure that the printing was aborted, as no receipt is produced
 		assertEquals(null, selfCheckoutStation.printer.removeReceipt());
 		// This is making sure that the attendantIO was called
 		String expected = "printDuplicate Called";
-		assertTrue(expected.equals(baos.toString()));
+		assertEquals(expected,baos.toString());
 		// This is making sure that the system is suspended after running out of ink - disabledException should be thrown
 		// To test this, BarcodeScanner.scan() will be tried, as that is the intiator of software interactions.
 		selfCheckoutStation.mainScanner.scan(null);
+	}
+	
+	/**
+	 * Test: Just to improve branch coverage. Looking for a normal print
+	 * where the total cost does not end in a 0.
+	 * Expected: Appropriate receipt, no exceptions.
+	 * Result: Test passes and improved coverage.
+	 */
+	@Test
+	public void totalCostNotEndingZero_Test(){
+		// Add ink and paper to the receipt printer.
+		try {
+			selfCheckoutStation.printer.addInk(1048576);
+			selfCheckoutStation.printer.addPaper(1024);
+		} catch (OverloadException e) {}
+		// Changing the price of one item cost so that it doesn't end in 0
+		this.itemCostList.set(0,"5.35");
+		change = "3.00";
+		amountPaid = "45.00";
+		receiptPrinterController.print(this.itemNameList, this.itemCostList, change, amountPaid);
+		assertEquals(
+				  "item 1      $5.35\n"
+				+ "item 2      $17.00\n"
+				+ "item 3      $20.00\n"
+				+ "Total: $42.35\n"
+				+ "Paid: $45.00\n\n"
+				+ "Change: $3.00\n",
+				selfCheckoutStation.printer.removeReceipt());;
+	}
+	
+	/**
+	 * Test: To see if getTotalVal returns appropriate value.
+	 * Expected: That the total cost will match the expected value.
+	 * Result: Test passes. This is a bit of a redundant test, but improves
+	 * coverage and ensures for once and all that totalVal is being
+	 * correctly updated.
+	 */
+	@Test
+	public void totalVal_Test() {
+		// Add ink and paper to the receipt printer.
+		try {
+			selfCheckoutStation.printer.addInk(1048576);
+			selfCheckoutStation.printer.addPaper(1024);
+		} catch (OverloadException e) {}
+		change = "3.00";
+		amountPaid = "45.00";
+		receiptPrinterController.print(this.itemNameList, this.itemCostList, change, amountPaid);
+		assertTrue(42.0==receiptPrinterController.getTotalVal());
 	}
 }
