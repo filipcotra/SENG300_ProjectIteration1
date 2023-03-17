@@ -86,15 +86,6 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 		this.output = station.billOutput;
 		this.output.register(this);
 	}
-	
-	/**
-	 * Installation method. Just calls constructor and returns newly 
-	 * made instance of the class which is installed on the given
-	 * station.
-	 */
-	public static PaymentControllerLogic installPaymentController(SelfCheckoutStation SCS, CustomerIO customer, AttendantIO attendant, PrintReceipt printerLogic) {
-		return new PaymentControllerLogic(SCS, customer, attendant, printerLogic);
-	}
 
 	/**
 	 * Updates the amount paid by the customer.
@@ -227,53 +218,37 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 		if(this.getChangeDue() == 0) {
 			throw new SimulationException(new Exception("This should never happen"));
 		}
+		/** If the changeDue is less than the lowest denom, call attendant automatically */
+		else if(this.getChangeDue()<this.minDenom) {
+			myAttendant.changeRemainsNoDenom(this.getChangeDue());
+			/** No need to suspend machine, nothing is empty its just a lack of denoms */
+		}
 		BillDispenser dispenser;
 		/** Go through denominations backwards, largest to smallest */
 		for(int index = this.denominations.length-1 ; index >= 0 ; index--) {
 			dispenser = this.dispensers.get(this.denominations[index]);
 			/** If the value of the bill is less than or equal to the change and change is payable */
-			if((this.denominations[index] <= this.getChangeDue())&&(this.getChangeDue()>=this.minDenom)) {
-				/** If this dispenser carries the largest denomination, emit immediately */
-				if(this.denominations[index] == this.maxDenom) {
-					try {
-						dispenser.emit();
-						index++;
+			if(this.denominations[index] <= this.getChangeDue()) {
+				try {
+					dispenser.emit();
+					index++;
+				}
+				/** If empty and not the smallest denom, move on. If the smallest denom, inform attendant */
+				catch(EmptyException e) {
+					if(this.denominations[index] == this.minDenom) {
+						/** In this case change will be larger than smallest denom but unpayable */
+						myAttendant.changeRemainsNoDenom(this.getChangeDue());
+						this.suspendMachine();
+						break;
 					}
-					catch(EmptyException ee) {
-						/** If empty, just move on to smaller denom */
+					else {
 						continue;
 					}
-					catch(Exception e) {
-						// Unspecified functionality
-					}
 				}
-				else {
-					/** Since this is smaller than the change due but largest as we are moving backwards, just emit */
-					try {
-						dispenser.emit();
-						index++;
-					}
-					/** If empty and not the smallest denom, move on. If the smallest denom, inform attendant */
-					catch(EmptyException e) {
-						if(this.denominations[index] == this.minDenom) {
-							/** In this case change will be larger than smallest denom but unpayable */
-							myAttendant.changeRemainsNoDenom(this.getChangeDue());
-							this.suspendMachine();
-						}
-						else {
-							continue;
-						}
-					}
-					catch(Exception e) {
-						e.printStackTrace();
-						// Unspecified functionality
-					}
+				catch(Exception e) {
+					e.printStackTrace();
+					// Unspecified functionality
 				}
-			}
-			/** If the changeDue is less than the lowest denom, call attendant automatically */
-			else if(this.getChangeDue()<this.minDenom) {
-				myAttendant.changeRemainsNoDenom(this.getChangeDue());
-				/** No need to suspend machine, nothing is empty its just a lack of denoms */
 			}
 		}
 	}

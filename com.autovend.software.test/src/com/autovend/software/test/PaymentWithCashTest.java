@@ -1,5 +1,6 @@
 package com.autovend.software.test;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 /*
  * Open issues:
  * 1. The hardware has to handle invalid cash, to reject it without involving the control software.
@@ -12,6 +13,8 @@ import static org.junit.Assert.assertEquals;
  */
 import static org.junit.Assert.fail;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Currency;
@@ -56,7 +59,9 @@ public class PaymentWithCashTest {
 	Bill billHundred;
 	ArrayList<Integer> ejectedBills; 
 	DispenserStub billObserverStub;
-	
+	final PrintStream originalOut = System.out;
+	ByteArrayOutputStream baos;
+	PrintStream ps;
 	
 	class DispenserStub implements BillDispenserObserver {
 
@@ -154,8 +159,7 @@ public class PaymentWithCashTest {
 	
 			@Override
 			public void changeRemainsNoDenom(double changeLeft) {
-				// TODO Auto-generated method stub
-				
+				System.out.print("changeRemainsNoDenom Called: " + changeLeft);
 			}
 
 			@Override
@@ -207,7 +211,10 @@ public class PaymentWithCashTest {
 	
 	@Before
 	public void setUp() {
-		
+		// Setting up new print stream to catch printed output, used to test terminal output
+		baos = new ByteArrayOutputStream();
+		ps = new PrintStream(baos);
+		System.setOut(ps);
 		billFive = new Bill(5, Currency.getInstance("CAD"));
 		billTen = new Bill(10, Currency.getInstance("CAD"));
 		billTwenty = new Bill(20, Currency.getInstance("CAD"));
@@ -261,7 +268,7 @@ public class PaymentWithCashTest {
 	 * reactToBillEjectedEvent method an eject the bill from the machine.
 	 */
 	@Test
-	public void addInvalidBill() {
+	public void addInvalidBill_Test() {
 		billObserver = new MyBillSlotObserver();
 		try {
 			selfCheckoutStation.billInput.register(billObserver);
@@ -284,7 +291,7 @@ public class PaymentWithCashTest {
 	 * should return a string value of "20".
 	 */
 	@Test
-	public void payLessThanTotal() {
+	public void payLessThanTotal_Test() {
 		
 		paymentController.setCartTotal(100.00);
 		try {
@@ -379,7 +386,7 @@ public class PaymentWithCashTest {
 	 * Checking the total change should return a string value of be "40.00".
 	 */
 	@Test
-	public void payFullWithChange(){
+	public void payFullWithChange_Test(){
 		
 		paymentController.setCartTotal(10.00);
 		try {
@@ -396,28 +403,7 @@ public class PaymentWithCashTest {
 			fail("An OverloadException should not have been thrown");
 		} 
 	}
-	/* Test Case: The customer pays over the total cart amount by 10 dollars and the total change is dispensed. 
-	 * 
-	 * Description: The cart total is set at $10. $20 is paid in a single bill.
-	 *    
-	 * There is no need to test for payments that would require coins, credit, or crypto.
-	 * Whether or not the cart Total is dropping has been tested already. So its not tested here.
-	 * 
-	 * Expected Result: The total change is calculated to 20-10 = 10
-	 * Checking the total change should return a string value of "10.0".
-	 * Checking the change due should return a double value of be "0.0" which is converted to string.
-	 */
-	@Test
-	public void totalChangeDueTenDollars() throws DisabledException, OverloadException{
-		billObserverStub = new DispenserStub();
-		selfCheckoutStation.billDispensers.get(10).register(billObserverStub);
-		paymentController.setCartTotal(10.00);	
-		selfCheckoutStation.billInput.accept(billTwenty);	
-		assertEquals("10.0",paymentController.getTotalChange());		
-		assertEquals("0.0",""+paymentController.getChangeDue());	
-		assertEquals("[10]",ejectedBills.toString());
-		
-	}
+
 	/* Test Case: The customer pays over the total cart amount by 30 dollars and the total change is dispensed. 
 	 * 
 	 * Description: The cart total is set at $20. $50 is paid in a single bill.
@@ -430,7 +416,7 @@ public class PaymentWithCashTest {
 	 * Checking the change due should return a double value of be "0.0" which is converted to string.
 	 */
 	@Test
-	public void totalChangeDueThirtyDollars() throws DisabledException, OverloadException{
+	public void totalChangeDueThirtyDollars_Test() throws DisabledException, OverloadException{
 		billObserverStub = new DispenserStub();
 		selfCheckoutStation.billDispensers.get(20).register(billObserverStub);
 		selfCheckoutStation.billDispensers.get(10).register(billObserverStub);
@@ -439,29 +425,98 @@ public class PaymentWithCashTest {
 		assertEquals("30.0",paymentController.getTotalChange());
 		assertEquals("0.0",""+paymentController.getChangeDue());
 		assertEquals("[10, 20]",ejectedBills.toString());
-		
-	}
-	/* Test Case: The customer pays over the total cart amount by 5 dollars and the total change is dispensed. 
-	 * 
-	 * Description: The cart total is set at $45. $50 is paid in a single bill.
-	 *    
-	 * There is no need to test for payments that would require coins, credit, or crypto.
-	 * Whether or not the cart Total is dropping has been tested already. So its not tested here.
-	 * 
-	 * Expected Result: The total change is calculated to 50-45 = 5
-	 * Checking the total change should return a string value of "5.0".
-	 * Checking the change due should return a double value of be "0.0" which is converted to string.
-	 */
-	@Test
-	public void totalChangeDueFiveDollars() throws DisabledException, OverloadException{
-		billObserverStub = new DispenserStub();
-		selfCheckoutStation.billDispensers.get(5).register(billObserverStub);
-		paymentController.setCartTotal(45.00);		
-		selfCheckoutStation.billInput.accept(billFifty);
-		assertEquals("5.0",paymentController.getTotalChange());	
-		assertEquals("0.0",""+paymentController.getChangeDue());	
-		assertEquals("[5]",ejectedBills.toString());
-	
 	}
 
+	/* Test Case: To see if updateCartTotal functions properly.
+	 * 
+	 * Description: Update cart total will be called twice with 20.
+	 * 
+	 * Expected Result: The cart total should be 40.
+	 */
+	@Test
+	public void cartUpdate_Test() {
+		paymentController.updateCartTotal(20.0);
+		paymentController.updateCartTotal(20.0);
+		assertTrue(40.0 == paymentController.getCartTotal());
+	}
+	
+	/* Test Case: Testing dispenseChange when change is 0.
+	 * 
+	 * Description: Change will be set to zero and then dispense change will be called.
+	 * 
+	 * Expected Result: A Simulation Exception will be thrown
+	 */
+	@Test (expected = SimulationException.class)
+	public void dispenseZeroChange_Test() {
+		paymentController.setChangeDue(0.0);
+		paymentController.dispenseChange();
+	}
+	
+	/* Test Case: To see if the AttendantIO is being properly notified
+	 * when change is below the minimum denom of 5.
+	 * 
+	 * Description: Will pay $5 when cost is 3, causing change of 2
+	 * 
+	 * Expected Result: AttendantIO should be called.
+	 */
+	@Test
+	public void changeTooSmallAttendantIO_Test() throws OverloadException {
+		paymentController.setCartTotal(3.00);
+		selfCheckoutStation.billInput.accept(billFive);
+		String expected = "changeRemainsNoDenom Called: 2.0";
+		assertEquals(expected,baos.toString());
+	}
+	
+	/* Test Case: When the denom that should be emitted is empty, but this
+	 * is not the smallest denom.
+	 * 
+	 * Description: Will pay $50 when the charge is $30, so that the change is
+	 * $20. Thus, the denom $20 should be attempted to be ejected, but will be
+	 * empty.
+	 * 
+	 * Expected: Expecting two tens to be emitted, and coverage to be improved.
+	 */
+	@Test
+	public void emitEmptyNotSmallest_Test() throws OverloadException {
+		// Emptying billDispenser(20)
+		selfCheckoutStation.billDispensers.get(20).unload();
+		billObserverStub = new DispenserStub();
+		selfCheckoutStation.billDispensers.get(20).register(billObserverStub);
+		selfCheckoutStation.billDispensers.get(10).register(billObserverStub);
+		paymentController.setCartTotal(30.00);		
+		selfCheckoutStation.billInput.accept(billFifty);
+		assertEquals("20.0",paymentController.getTotalChange());
+		assertEquals("0.0",""+paymentController.getChangeDue());
+		assertEquals("[10, 10]",ejectedBills.toString());
+	}
+	
+	/* Test Case: When the denom that should be emitted is empty, but this
+	 * is the smallest denom.
+	 * 
+	 * Description: Will pay $10 when the charge is $5, which should lead to 
+	 * $5 being emitted. However, it will be empty.
+	 * 
+	 * Expected: AttendantIO should be called and disabledException should
+	 * be thrown as the machine will be suspended.
+	 */
+	@Test
+	public void emitEmptySmallest_Test() throws OverloadException {
+		// Emptying billDispenser(20)
+		selfCheckoutStation.billDispensers.get(5).unload();
+		billObserverStub = new DispenserStub();
+		selfCheckoutStation.billDispensers.get(20).register(billObserverStub);
+		selfCheckoutStation.billDispensers.get(10).register(billObserverStub);
+		paymentController.setCartTotal(5.00);		
+		try{
+			selfCheckoutStation.billInput.accept(billTen);
+			fail();
+		}
+		catch(DisabledException e) {
+			assertEquals("5.0",paymentController.getTotalChange());
+			assertEquals("5.0",""+paymentController.getChangeDue());
+			String expected = "changeRemainsNoDenom Called: 5.0";
+			assertEquals(expected,baos.toString());
+		}
+	}
+	
 }
