@@ -31,6 +31,10 @@ public class PrintReceipt implements ReceiptPrinterObserver {
 	SelfCheckoutStation station;
 	boolean flagInk = true;
 	boolean flagPaper = true;
+	char[] totalChars = {'T','o','t','a','l',':',' ','$'};
+	char[] paidChars = {'P','a','i','d',':',' ','$'};
+	char[] changeChars = {'C','h','a','n','g','e',':',' ','$'};
+	char[] priceSpace = {' ',' ',' ',' ',' ',' ','$'};
 
 	/**
 	 * Initialize a printer for the Print Receipt use case. Also registers this
@@ -76,7 +80,8 @@ public class PrintReceipt implements ReceiptPrinterObserver {
 	/**
 	 * The method that prints out the receipt for the customer. Starts by printing
 	 * the items and their corresponding prices, and then the total, amount paid by
-	 * the customer, and the change they were given.
+	 * the customer, and the change they were given. Before print is called, each time
+	 * flags for paper and ink should be checked.
 	 * 
 	 * @param items      the items bought by the customer
 	 * @param prices     the price of the item bought by the customer
@@ -85,139 +90,110 @@ public class PrintReceipt implements ReceiptPrinterObserver {
 	 */
 	public void print(ArrayList<String> items, ArrayList<String> prices, String change, String amountPaid) {
 		try {
-			if (!(flagInk == false || flagPaper == false)) {
-				// Print the items and prices
-				for (int i = 0; i < items.size(); i++) {
-					if (flagInk == false || flagPaper == false) {
-						break;
-					} else {
-						for (int k = 0; k < items.get(i).length(); k++) {
-							if (flagInk == false || flagPaper == false) {
-								break;
-							} else {
-								printer.print(items.get(i).charAt(k));
-							}
-						}
-					}
-
-					// Creating some spacing between the items and their respective prices.
-					printer.print(' ');
-					printer.print(' ');
-					printer.print(' ');
-					printer.print(' ');
-					printer.print(' ');
-					printer.print(' ');
-					printer.print('$');
-
-					for (int k = 0; k < prices.get(i).length(); k++) {
-						if (flagInk == false || flagPaper == false) {
-							break;
-						} else {
-							printer.print(prices.get(i).charAt(k));
-						}
-					}
-					setTotalVal(totalVal += (Double.parseDouble(prices.get(i))));
-					// Print a newline character after each item
-					printer.print('\n');
+			for (int i = 0; i < items.size(); i++) {
+				for (int k = 0; k < items.get(i).length(); k++) {
+					this.callPrint(items.get(i).charAt(k));
 				}
 
-				// Printing the total val
-				printer.print('T');
-				printer.print('o');
-				printer.print('t');
-				printer.print('a');
-				printer.print('l');
-				printer.print(':');
-				printer.print(' ');
-				printer.print('$');
-				// Print the total as a character
-				String strTotalVal = Double.toString(totalVal);
-				if (strTotalVal.charAt(strTotalVal.length() - 1) == '0') {
-					strTotalVal += '0';
-				}
-				for (int i = 0; i < strTotalVal.length(); i++) {
-					if (flagInk == false || flagPaper == false) {
-						break;
-					} else {
-						printer.print(strTotalVal.charAt(i));
-					}
+				// Creating some spacing between the items and their respective prices.
+				for(char ch : this.priceSpace) {
+					this.callPrint(ch);
 				}
 
-				// Print a newline character after the total
-				printer.print('\n');
-
-				// Printing amount paid
-				printer.print('P');
-				printer.print('a');
-				printer.print('i');
-				printer.print('d');
-				printer.print(':');
-				printer.print(' ');
-				printer.print('$');
-
-				// Taking the total amount paid by the user and printing it
-				for (int l = 0; l < amountPaid.length(); l++) {
-					if (flagInk == false || flagPaper == false) {
-						break;
-					} else {
-						printer.print(amountPaid.charAt(l));
-					}
+				for (int k = 0; k < prices.get(i).length(); k++) {
+					this.callPrint(prices.get(i).charAt(k));
 				}
-
-				// Printing a newline character
-				printer.print('\n');
-
-				// Taking the change due for the user and storing it as a string
-				for (int l = 0; l < change.length(); l++) {
-					changeNeeded += (String.valueOf(change));
-				}
-
-				// Printing a newline character
-				printer.print('\n');
-
-				// Change Due
-				printer.print('C');
-				printer.print('h');
-				printer.print('a');
-				printer.print('n');
-				printer.print('g');
-				printer.print('e');
-				printer.print(':');
-				printer.print(' ');
-				printer.print('$');
-
-				// Printing the change due
-				for (int m = 0; m < change.length(); m++) {
-					if (flagInk == false || flagPaper == false) {
-						break;
-					} else {
-						printer.print(change.charAt(m));
-					}
-				}
-
-				// Printing a newline character
-				printer.print('\n');
-
-				// Cut the paper
-				printer.cutPaper();
-
-				// Step 4: Once the receipt is printed, signals to Customer I/O that session is
-				// complete.
-				this.customer.thankCustomer();
+				setTotalVal(totalVal += (Double.parseDouble(prices.get(i))));
+				// Print a newline character after each item
+				this.callPrint('\n');
 			}
+
+			// Printing the total val
+			for(char ch : this.totalChars) {
+				this.callPrint(ch);
+			}
+			
+			// Print the total as a character
+			String strTotalVal = Double.toString(totalVal);
+			if (strTotalVal.charAt(strTotalVal.length() - 1) == '0') {
+				strTotalVal += '0';
+			}
+			for (int i = 0; i < strTotalVal.length(); i++) {
+				this.callPrint(strTotalVal.charAt(i));
+			}
+
+			// Print a newline character after the total
+			this.callPrint('\n');
+
+			// Printing amount paid
+			for(char ch : this.paidChars) {
+				this.callPrint(ch);
+			}
+
+			// Taking the total amount paid by the user and printing it
+			for (int l = 0; l < amountPaid.length(); l++) {
+				this.callPrint(amountPaid.charAt(l));
+			}
+
+			// Printing a newline character
+			this.callPrint('\n');
+
+			// Taking the change due for the user and storing it as a string
+			for (int l = 0; l < change.length(); l++) {
+				changeNeeded += (String.valueOf(change));
+			}
+
+			// Printing a newline character
+			this.callPrint('\n');
+
+			// Change Due
+			for(char ch : this.changeChars) {
+				this.callPrint(ch);
+			}
+
+			// Printing the change due
+			for (int m = 0; m < change.length(); m++) {
+				this.callPrint(change.charAt(m));
+			}
+
+			// Printing a newline character
+			this.callPrint('\n');
+
+			// Cut the paper
+			printer.cutPaper();
+
+			// Step 4: Once the receipt is printed, signals to Customer I/O that session is
+			// complete.
+			this.customer.thankCustomer();
 		}
-		// Catch any exceptions
-		catch (Exception e) {
-			System.out.println("Error printing receipt: " + e.getMessage());
+		catch(Exception e) {
+			// Unspecified function
 		}
 	}
 
+	// Method for calling print specifically, connecting software to hardware. This will
+	// be easier than doing it as above.
+	public void callPrint(char ch) throws Exception {
+		if(!(this.flagPaper == false || this.flagInk == false)) {
+			try {
+				this.printer.print(ch);
+			}
+			catch(Exception e) {
+				throw e;
+			}
+		}
+		else {
+			// This should hopefully abort the print method
+			throw new Exception();
+		}
+	}
+	
 	// Implement methods from the ReceiptPrinterObserver interface
 
 	// Print duplicate receipt for the attendant if the printer is out of paper
 	@Override
 	public void reactToOutOfInkEvent(ReceiptPrinter printer) {
-		flagInk = false;
+		this.flagInk = false;
 		this.suspendSystem();
 		this.attendant.printDuplicateReceipt();
 	}
@@ -225,7 +201,7 @@ public class PrintReceipt implements ReceiptPrinterObserver {
 	// Print duplicate receipt for the attendant if the printer is out of ink
 	@Override
 	public void reactToOutOfPaperEvent(ReceiptPrinter printer) {
-		flagPaper = false;
+		this.flagPaper = false;
 		this.suspendSystem();
 		this.attendant.printDuplicateReceipt();
 	}
