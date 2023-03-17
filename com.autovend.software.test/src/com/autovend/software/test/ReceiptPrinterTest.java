@@ -42,16 +42,6 @@ public class ReceiptPrinterTest {
 	ByteArrayOutputStream baos;
 	PrintStream ps;
 	class MyCustomerIO implements CustomerIO {
-			
-			@Override
-			public void scanItem(BarcodedUnit item) {
-				// TODO Auto-generated method stub
-			}
-		
-			@Override
-			public void placeScannedItemInBaggingArea(BarcodedUnit item) {
-				// TODO Auto-generated method stub
-			}
 		
 			@Override
 			public void showUpdatedTotal(Double totalRemaining) {
@@ -69,7 +59,19 @@ public class ReceiptPrinterTest {
 			}
 
 			@Override
+			public void scanItem(BarcodedUnit item) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
 			public void notifyPlaceItemCustomerIO() {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void placeScannedItemInBaggingArea(BarcodedUnit item) {
 				// TODO Auto-generated method stub
 				
 			}
