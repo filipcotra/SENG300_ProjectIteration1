@@ -145,7 +145,7 @@ public class AddItemByScanningController implements BarcodeScannerObserver, Elec
 			// If the attendant does not approve of the weight discrepancy, then remove it from the bagging area
 			// Attendant interaction required: attendantIO.approveWeightDiscrepancy()
 			if (!attendantIO.approveWeightDiscrepancy()) {
-				this.station.baggingArea.remove(scannedItem);
+				this.station.baggingArea.remove(scannedItem); // This line will call an error, don't know how to fix currently 2023-03-17 
 			}
 		}
 		this.unblockSystem(); // Unblock the system (Step 7)
