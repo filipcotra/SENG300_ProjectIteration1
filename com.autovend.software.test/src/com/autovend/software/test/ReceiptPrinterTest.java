@@ -180,7 +180,7 @@ public class ReceiptPrinterTest {
 	 * print.
 	 * Result: Test passes. This shows that CustomerIO is successfully notified
 	 * of the customers session being completed, demonstrating that step 4 is
-	 * occuring correctly. Steps 5-6 cannot really be tested.
+	 * occurring correctly. Steps 5-6 cannot really be tested.
 	 */
 	@Test
 	public void successfulPrintThankCustomer_Test(){
