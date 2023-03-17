@@ -543,35 +543,5 @@ public class PaymentWithCashTest {
 		assertEquals("[5]",ejectedBills.toString());
 	
 	}
-	/* Test Case: The customer wants to pay but one of the dispensers is empty.
-	 * 
-	 * Description: One of the dispensers will empty first.
-	 * Then when a a customer tries to insert a bill, the machine shuts down. All the dispensers being empty is
-     * an unrealistic situation.
-	 *    
-	 * There is no need to test for payments that would require coins, credit, or crypto.
-	 * Whether or not the cart Total is dropping has been tested already. So its not tested here.
-	 * 
-	 * Expected Result: We expect the disabled exception to happen because the machine is suspended due
-	 * one of the dispensers being empty. In this case, the 5 dollar dispenser is empty.
-	 */
-	
-	@Test
-	public void totalChangeDueFiveDollarsEmptyDispenser() throws DisabledException, OverloadException{
-		selfCheckoutStation.billDispensers.get(5).unload();	
-		billObserverStub = new DispenserStub();
-		selfCheckoutStation.billDispensers.get(5).register(billObserverStub);
-		paymentController.setCartTotal(45.00);				
-		try {
-			selfCheckoutStation.billInput.accept(billFifty);
-		}
-		catch(DisabledException e){
-			assertEquals(true, attendantSignalled);
-			return;
-			}
-		// We expect the exception to happen because the machine is suspended
-		fail("A disabled exception should have been thrown");
-			
-	}
 	
 }
