@@ -59,15 +59,21 @@ public class ReceiptPrinterTest {
 			}
 
 			@Override
-			public BarcodedUnit scanItem() {
+			public void scanItem(BarcodedUnit item) {
 				// TODO Auto-generated method stub
-				return null;
+				
 			}
 
 			@Override
-			public BarcodedUnit placeScannedItemInBaggingArea() {
+			public void notifyPlaceItemCustomerIO() {
 				// TODO Auto-generated method stub
-				return null;
+				
+			}
+
+			@Override
+			public void placeScannedItemInBaggingArea(BarcodedUnit item) {
+				// TODO Auto-generated method stub
+				
 			}
 		
 		}
