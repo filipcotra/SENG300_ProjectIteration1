@@ -33,6 +33,7 @@ public class AddItemByScanningController implements BarcodeScannerObserver, Elec
 	CustomerIO customerIO;
 	AttendantIO attendantIO;
 	double expectedWeight; // The expected weight of the self checkout station when an item is scanned
+	double actualWeight; // The actual weight of the self checkout station when an item is scanned
 	BarcodedUnit scannedItem; // The current scanned item to be added to the bagging area
 	PaymentControllerLogic paymentController;
 
@@ -77,20 +78,12 @@ public class AddItemByScanningController implements BarcodeScannerObserver, Elec
 		this.station.billStorage.enable();
 		this.station.billValidator.enable();
 	}
-	
-	/**
-	 * Helper function to notify the customer to place the scanned item in the bagging area (Step 5)
-	 * Requires customer input: customerIO.placeScannedItemInBaggingArea()
-	 */
-	private BarcodedUnit notifyPlaceItemCustomerIO() {
-		return customerIO.placeScannedItemInBaggingArea();
-	}
 		
 	/**
 	 * Setter for product. Takes any product. Is only to be called within thisclass.
 	 * @param product The current product at the station
 	 */
-	public void setProduct(BarcodedProduct product) {
+	private void setProduct(BarcodedProduct product) {
 		this.product = product;
 	}
 	
@@ -100,12 +93,28 @@ public class AddItemByScanningController implements BarcodeScannerObserver, Elec
 	public BarcodedProduct getProduct() {
 		return this.product;
 	}
+	
+	/**
+	 * Getter for expectedWeight. Returns expectedWeight.
+	 */
+	public double getExpectedWeight() {
+		return this.expectedWeight;
+	}
+	
+	/**
+	 * Getter for actualWeight. Returns expectedWeight.
+	 */
+	public double getActualWeight() {
+		return this.actualWeight;
+	}
+
 
 	/**
 	 * Occurs after mainScanner successfully scans an item (Step 1)
 	 */
 	@Override
 	public void reactToBarcodeScannedEvent(BarcodeScanner barcodeScanner, Barcode barcode) {
+		
 		
 		// Block the self checkout station by disabling all abstract devices other than the bagging area. (Step 2)
 		this.blockSystem();
@@ -127,10 +136,8 @@ public class AddItemByScanningController implements BarcodeScannerObserver, Elec
 			e.printStackTrace();
 		}
 		
-		// Notify Customer I/O to place scanned item in bagging area (Step 5) and notify weight change (Step 6)
-		// Goes to reactToWeightChangedEvent after the line is executed
-		//this.scannedItem = this.notifyPlaceItemCustomerIO();
-		//this.station.baggingArea.add(this.scannedItem);
+		// Notify Customer I/O to place scanned item in bagging area (Step 5) 
+		customerIO.notifyPlaceItemCustomerIO();
 		
 	}
 
@@ -138,17 +145,24 @@ public class AddItemByScanningController implements BarcodeScannerObserver, Elec
 	 * Occurs after the scanned item is placed in the bagging area
 	 */
 	@Override
+	//Notify weight change (Step 6)
 	public void reactToWeightChangedEvent(ElectronicScale scale, double weightInGrams) {
 		// Check for weight discrepancy (Exception 1)
-		if (weightInGrams!= this.expectedWeight) {
-			// WEIGHT DISCREPANCY ERROR
-			// If the attendant does not approve of the weight discrepancy, then remove it from the bagging area
+		this.actualWeight = weightInGrams;
+		if (actualWeight != this.expectedWeight) {
+			// Step 1. Block self checkout system (already done)
+			// Step 2. Notify CustomerIO
+			// Step 3. Notify Attendant
+			// Step 4. Attendant approves discrepancy
 			// Attendant interaction required: attendantIO.approveWeightDiscrepancy()
-			if (!attendantIO.approveWeightDiscrepancy()) {
-				this.station.baggingArea.remove(scannedItem); // This line will call an error, don't know how to fix currently 2023-03-17 
+			if (attendantIO.approveWeightDiscrepancy()) {
+				this.unblockSystem(); // Unblock the system (Step 7)
 			}
+			// If they don't approve, then remain blocked
+			this.blockSystem();
+		} else { // If there is no discrepancy then unblock the system
+			this.unblockSystem(); // Step 7, unblock the system 
 		}
-		this.unblockSystem(); // Unblock the system (Step 7)
 	}
 	
 	// The methods below are not needed but required by the inherited interfaces

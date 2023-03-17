@@ -121,15 +121,13 @@ public class PaymentWithCashTest {
 	class MyCustomerIO implements CustomerIO {
 		
 		@Override
-		public BarcodedUnit scanItem() {
+		public void scanItem(BarcodedUnit item) {
 			// TODO Auto-generated method stub
-			return null;
 		}
 	
 		@Override
-		public BarcodedUnit placeScannedItemInBaggingArea() {
+		public void placeScannedItemInBaggingArea(BarcodedUnit item) {
 			// TODO Auto-generated method stub
-			return null;
 		}
 	
 		@Override
@@ -147,6 +145,12 @@ public class PaymentWithCashTest {
 		@Override
 		public void removeBill(BillSlot slot) {
 			slot.removeDanglingBill();
+		}
+
+		@Override
+		public void notifyPlaceItemCustomerIO() {
+			// TODO Auto-generated method stub
+			
 		}
 	
 	}
