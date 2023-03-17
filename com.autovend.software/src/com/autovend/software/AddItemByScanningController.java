@@ -85,28 +85,10 @@ public class AddItemByScanningController implements BarcodeScannerObserver, Elec
 	private BarcodedUnit notifyPlaceItemCustomerIO() {
 		return customerIO.placeScannedItemInBaggingArea();
 	}
-	
+		
 	/**
-	 * Scan the item that CustomerIO chooses to scan (Step 1 in the use case diagram)
-	 * Requires customer input: customerIO.scanItem()
-	 */
-	public void addItemByScanning() {
-		// Checking if a customer session is in progress (Exception 2)
-		// This is just done by checking if the customerIO object is null
-		if (customerIO != null) {
-			// Call the scan method of the stations main scanner (Step 1)
-			// Goes to reactToBarcodeScannedEvent when this line is executed
-			this.station.mainScanner.scan(customerIO.scanItem());
-		}
-
-	}
-	
-	/**
-	 * Setter for product. Takes any product. Is only to be called within this
-	 * class.
-	 * 
-	 * @param product
-	 * 		The current product at the station
+	 * Setter for product. Takes any product. Is only to be called within thisclass.
+	 * @param product The current product at the station
 	 */
 	public void setProduct(BarcodedProduct product) {
 		this.product = product;
@@ -120,10 +102,11 @@ public class AddItemByScanningController implements BarcodeScannerObserver, Elec
 	}
 
 	/**
-	 * Occurs after mainScanner successfully scans an item
+	 * Occurs after mainScanner successfully scans an item (Step 1)
 	 */
 	@Override
 	public void reactToBarcodeScannedEvent(BarcodeScanner barcodeScanner, Barcode barcode) {
+		
 		// Block the self checkout station by disabling all abstract devices other than the bagging area. (Step 2)
 		this.blockSystem();
 		
@@ -162,7 +145,7 @@ public class AddItemByScanningController implements BarcodeScannerObserver, Elec
 			// If the attendant does not approve of the weight discrepancy, then remove it from the bagging area
 			// Attendant interaction required: attendantIO.approveWeightDiscrepancy()
 			if (!attendantIO.approveWeightDiscrepancy()) {
-				this.station.baggingArea.remove(scannedItem);
+				this.station.baggingArea.remove(scannedItem); // This line will call an error, don't know how to fix currently 2023-03-17 
 			}
 		}
 		this.unblockSystem(); // Unblock the system (Step 7)

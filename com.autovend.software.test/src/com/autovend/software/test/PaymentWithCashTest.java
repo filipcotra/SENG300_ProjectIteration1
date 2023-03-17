@@ -62,6 +62,7 @@ public class PaymentWithCashTest {
 	final PrintStream originalOut = System.out;
 	ByteArrayOutputStream baos;
 	PrintStream ps;
+	Boolean attendantSignalled = false;
 	
 	class DispenserStub implements BillDispenserObserver {
 
@@ -98,7 +99,7 @@ public class PaymentWithCashTest {
 		@Override
 		public void reactToBillRemovedEvent(BillDispenser dispenser, Bill bill) {
 			ejectedBills.add(bill.getValue());		
-			System.out.println("ASSASAS");
+			
 		}
 
 		@Override
@@ -160,6 +161,7 @@ public class PaymentWithCashTest {
 			@Override
 			public void changeRemainsNoDenom(double changeLeft) {
 				System.out.print("changeRemainsNoDenom Called: " + changeLeft);
+				attendantSignalled = true;
 			}
 
 			@Override
@@ -517,6 +519,59 @@ public class PaymentWithCashTest {
 			String expected = "changeRemainsNoDenom Called: 5.0";
 			assertEquals(expected,baos.toString());
 		}
+	}
+	/* Test Case: The customer pays over the total cart amount by 5 dollars and the total change is dispensed. 
+	 * 
+	 * Description: The cart total is set at $45. $50 is paid in a single bill.So one 5 dollar bill is ejected for
+	 * the customer.
+	 *    
+	 * There is no need to test for payments that would require coins, credit, or crypto.
+	 * Whether or not the cart Total is dropping has been tested already. So its not tested here.
+	 * 
+	 * Expected Result: The total change is calculated to 50-45 = 5
+	 * Checking the total change should return a string value of "5.0".
+	 * Checking the change due should return a double value of be "0.0" which is converted to string.
+	 */
+	@Test
+	public void totalChangeDueFiveDollars() throws DisabledException, OverloadException{
+		billObserverStub = new DispenserStub();
+		selfCheckoutStation.billDispensers.get(5).register(billObserverStub);
+		paymentController.setCartTotal(45.00);		
+		selfCheckoutStation.billInput.accept(billFifty);
+		assertEquals("5.0",paymentController.getTotalChange());	
+		assertEquals("0.0",""+paymentController.getChangeDue());	
+		assertEquals("[5]",ejectedBills.toString());
+	
+	}
+	/* Test Case: The customer wants to pay but one of the dispensers is empty.
+	 * 
+	 * Description: One of the dispensers will empty first.
+	 * Then when a a customer tries to insert a bill, the machine shuts down. All the dispensers being empty is
+     * an unrealistic situation.
+	 *    
+	 * There is no need to test for payments that would require coins, credit, or crypto.
+	 * Whether or not the cart Total is dropping has been tested already. So its not tested here.
+	 * 
+	 * Expected Result: We expect the disabled exception to happen because the machine is suspended due
+	 * one of the dispensers being empty. In this case, the 5 dollar dispenser is empty.
+	 */
+	
+	@Test
+	public void totalChangeDueFiveDollarsEmptyDispenser() throws DisabledException, OverloadException{
+		selfCheckoutStation.billDispensers.get(5).unload();	
+		billObserverStub = new DispenserStub();
+		selfCheckoutStation.billDispensers.get(5).register(billObserverStub);
+		paymentController.setCartTotal(45.00);				
+		try {
+			selfCheckoutStation.billInput.accept(billFifty);
+		}
+		catch(DisabledException e){
+			assertEquals(true, attendantSignalled);
+			return;
+			}
+		// We expect the exception to happen because the machine is suspended
+		fail("A disabled exception should have been thrown");
+			
 	}
 	
 }

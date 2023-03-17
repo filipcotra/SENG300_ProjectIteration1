@@ -107,7 +107,7 @@ public class AddItemByScanningTest {
 
 	}
 	/**
-	 * An example test case that runs a normal execution of the use case
+	 * An example setup that runs a normal execution of the use case
 	 * You can delete this method later
 	 */
 	@Before
@@ -139,7 +139,7 @@ public class AddItemByScanningTest {
 		/**
 		 *  Step 1: Laser Scanner: Detects a barcode and signals this to the System.
 		 */	
-		addItemByScanningController.addItemByScanning();
+		selfCheckoutStation.mainScanner.scan(customer.scanItem());
 		assertEquals(new MyCustomerIO().scanItem(), this.customer.scanItem());
 		/**
 		 * Step 3: System: Determines the characteristics (weight and cost) of the product associated with the 
