@@ -28,6 +28,7 @@ import com.autovend.products.BarcodedProduct;
  */
 public class AddItemByScanningController implements BarcodeScannerObserver, ElectronicScaleObserver {
 	
+	BarcodedProduct product;
 	SelfCheckoutStation station;
 	CustomerIO customerIO;
 	AttendantIO attendantIO;
@@ -99,6 +100,24 @@ public class AddItemByScanningController implements BarcodeScannerObserver, Elec
 		}
 
 	}
+	
+	/**
+	 * Setter for product. Takes any product. Is only to be called within this
+	 * class.
+	 * 
+	 * @param product
+	 * 		The current product at the station
+	 */
+	public void setProduct(BarcodedProduct product) {
+		this.product = product;
+	}
+	
+	/**
+	 * Getter for product. Returns Product.
+	 */
+	public BarcodedProduct getProduct() {
+		return this.product;
+	}
 
 	/**
 	 * Occurs after mainScanner successfully scans an item
@@ -109,7 +128,7 @@ public class AddItemByScanningController implements BarcodeScannerObserver, Elec
 		this.blockSystem();
 		
 		// Get product details from the barcode (Step 3)
-		BarcodedProduct product = ProductDatabases.BARCODED_PRODUCT_DATABASE.get(barcode);
+		setProduct(ProductDatabases.BARCODED_PRODUCT_DATABASE.get(barcode));
 		
 		// Update cart total and item cost list
 		BigDecimal price = product.getPrice();
