@@ -77,14 +77,6 @@ public class AddItemByScanningController implements BarcodeScannerObserver, Elec
 		this.station.billStorage.enable();
 		this.station.billValidator.enable();
 	}
-	
-	/**
-	 * Helper function to notify the customer to place the scanned item in the bagging area (Step 5)
-	 * Requires customer input: customerIO.placeScannedItemInBaggingArea()
-	 */
-	private BarcodedUnit notifyPlaceItemCustomerIO() {
-		return customerIO.placeScannedItemInBaggingArea();
-	}
 		
 	/**
 	 * Setter for product. Takes any product. Is only to be called within thisclass.
