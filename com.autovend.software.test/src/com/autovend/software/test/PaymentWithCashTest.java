@@ -13,6 +13,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Currency;
 
 import org.junit.Before;
@@ -53,10 +54,11 @@ public class PaymentWithCashTest {
 	Bill billTwenty;
 	Bill billFifty;
 	Bill billHundred;
+	ArrayList<Integer> ejectedBills; 
+	DispenserStub billObserverStub;
 	
 	
-	
-	class DisenserStub implements BillDispenserObserver {
+	class DispenserStub implements BillDispenserObserver {
 
 		@Override
 		public void reactToEnabledEvent(AbstractDevice<? extends AbstractDeviceObserver> device) {
@@ -90,8 +92,8 @@ public class PaymentWithCashTest {
 
 		@Override
 		public void reactToBillRemovedEvent(BillDispenser dispenser, Bill bill) {
-			// TODO Auto-generated method stub
-			
+			ejectedBills.add(bill.getValue());		
+			System.out.println("ASSASAS");
 		}
 
 		@Override
@@ -215,7 +217,7 @@ public class PaymentWithCashTest {
 				new BigDecimal[] {new BigDecimal(1),new BigDecimal(2)}, 10000, 5);
 		customer = new MyCustomerIO();
 		attendant = new MyAttendantIO();
-		
+		ejectedBills = new ArrayList<Integer>();		
 		/* Load one hundred, $5, $10, $20, $50 bills into the dispensers so we can dispense change during tests.
 		 * Every dispenser has a max capacity of 100 
 		 */
@@ -241,7 +243,7 @@ public class PaymentWithCashTest {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		receiptPrinterController = new PrintReceipt(selfCheckoutStation.printer, customer, attendant);
+		receiptPrinterController = new PrintReceipt(selfCheckoutStation, selfCheckoutStation.printer, customer, attendant);
 		paymentController = new PaymentControllerLogic(selfCheckoutStation, customer, attendant, receiptPrinterController);
 		paymentController.setCartTotal(0);
 		
@@ -407,13 +409,13 @@ public class PaymentWithCashTest {
 	 */
 	@Test
 	public void totalChangeDueTenDollars() throws DisabledException, OverloadException{
-		
-		paymentController.setCartTotal(10.00);
-		selfCheckoutStation.billInput.accept(billTwenty);
-		assertEquals("10.0",paymentController.getTotalChange());
-		// Should get change due be 10 here?
-		paymentController.dispenseChange();
-		assertEquals("0.0",""+paymentController.getChangeDue());			
+		billObserverStub = new DispenserStub();
+		selfCheckoutStation.billDispensers.get(10).register(billObserverStub);
+		paymentController.setCartTotal(10.00);	
+		selfCheckoutStation.billInput.accept(billTwenty);	
+		assertEquals("10.0",paymentController.getTotalChange());		
+		assertEquals("0.0",""+paymentController.getChangeDue());	
+		assertEquals("[10]",ejectedBills.toString());
 		
 	}
 	/* Test Case: The customer pays over the total cart amount by 30 dollars and the total change is dispensed. 
@@ -429,12 +431,15 @@ public class PaymentWithCashTest {
 	 */
 	@Test
 	public void totalChangeDueThirtyDollars() throws DisabledException, OverloadException{
-		
+		billObserverStub = new DispenserStub();
+		selfCheckoutStation.billDispensers.get(20).register(billObserverStub);
+		selfCheckoutStation.billDispensers.get(10).register(billObserverStub);
 		paymentController.setCartTotal(20.00);		
 		selfCheckoutStation.billInput.accept(billFifty);
 		assertEquals("30.0",paymentController.getTotalChange());
-		paymentController.dispenseChange();
-		assertEquals("0.0",""+paymentController.getChangeDue());				
+		assertEquals("0.0",""+paymentController.getChangeDue());
+		assertEquals("[10, 20]",ejectedBills.toString());
+		
 	}
 	/* Test Case: The customer pays over the total cart amount by 5 dollars and the total change is dispensed. 
 	 * 
@@ -449,12 +454,14 @@ public class PaymentWithCashTest {
 	 */
 	@Test
 	public void totalChangeDueFiveDollars() throws DisabledException, OverloadException{
-		
+		billObserverStub = new DispenserStub();
+		selfCheckoutStation.billDispensers.get(5).register(billObserverStub);
 		paymentController.setCartTotal(45.00);		
 		selfCheckoutStation.billInput.accept(billFifty);
-		assertEquals("5.0",paymentController.getTotalChange());
-		paymentController.dispenseChange();
-		assertEquals("0.0",""+paymentController.getChangeDue());				
+		assertEquals("5.0",paymentController.getTotalChange());	
+		assertEquals("0.0",""+paymentController.getChangeDue());	
+		assertEquals("[5]",ejectedBills.toString());
+	
 	}
 
 }
