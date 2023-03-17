@@ -213,7 +213,7 @@ public class PrintReceipt implements ReceiptPrinterObserver {
 	// Implement methods from the ReceiptPrinterObserver interface
 
 	/**
-	 * Print duplicate receipt for the attendant if the printer is out of paper
+	 * Print duplicate receipt for the attendant if the printer is out of ink
 	 */
 	@Override
 	public void reactToOutOfInkEvent(ReceiptPrinter printer) {
@@ -223,7 +223,7 @@ public class PrintReceipt implements ReceiptPrinterObserver {
 	}
 
 	/**
-	 * Print duplicate receipt for the attendant if the printer is out of ink
+	 * Print duplicate receipt for the attendant if the printer is out of paper
 	 */
 	@Override
 	public void reactToOutOfPaperEvent(ReceiptPrinter printer) {
