@@ -20,17 +20,20 @@ public interface CustomerIO {
 	/**
 	 * Simulates a customer scanning an item.
 	 * This interaction is on Step 1 of add item by scanning.
-	 * @return The item that the customer will scan. 
 	 */
-	public BarcodedUnit scanItem();
+	public void scanItem(BarcodedUnit item);
 
+	/**
+	 * Simulates the customer receiving a signal from the system to place the scanned item into
+	 * the bagging area. This is step 5 in "Add Item By Scanning".
+	 */
+	public void notifyPlaceItemCustomerIO();
+	
 	/**
 	 * Simulates a customer placing their scanned item in the bagging area.
 	 * This interaction is on Step 5 of add item by scanning.
-	 * @return The item that the customer will place in the bagging area. 
-	 * This item can be the same as the one they scanned or some random item.
 	 */
-	public BarcodedUnit placeScannedItemInBaggingArea();
+	public void placeScannedItemInBaggingArea(BarcodedUnit item);
 
 	/**
 	 * Simulates a customer being informed of the updated total due for their
@@ -52,4 +55,8 @@ public interface CustomerIO {
 	 * Simulates the customer removing the bill from the slot
 	 */
 	public void removeBill(BillSlot slot);
+
+	
+	
+	
 }

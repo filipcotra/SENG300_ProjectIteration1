@@ -65,15 +65,13 @@ public class AllTogether {
 class MyCustomerIO implements CustomerIO {
 
 	@Override
-	public BarcodedUnit scanItem() {
+	public void scanItem(BarcodedUnit item) {
 		// TODO Auto-generated method stub
-		return null;
 	}
 
 	@Override
-	public BarcodedUnit placeScannedItemInBaggingArea() {
+	public void placeScannedItemInBaggingArea(BarcodedUnit item) {
 		// TODO Auto-generated method stub
-		return null;
 	}
 
 	@Override
@@ -90,6 +88,12 @@ class MyCustomerIO implements CustomerIO {
 
 	@Override
 	public void removeBill(BillSlot slot) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void notifyPlaceItemCustomerIO() {
 		// TODO Auto-generated method stub
 		
 	}
