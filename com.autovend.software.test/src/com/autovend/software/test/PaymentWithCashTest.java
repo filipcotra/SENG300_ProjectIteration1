@@ -1,5 +1,6 @@
 package com.autovend.software.test;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 /*
  * Open issues:
@@ -527,6 +528,7 @@ public class PaymentWithCashTest {
 	 *    
 	 * There is no need to test for payments that would require coins, credit, or crypto.
 	 * Whether or not the cart Total is dropping has been tested already. So its not tested here.
+	 * The attendant should also not be notified in this boundary case, which is being tested here.
 	 * 
 	 * Expected Result: The total change is calculated to 50-45 = 5
 	 * Checking the total change should return a string value of "5.0".
@@ -541,7 +543,7 @@ public class PaymentWithCashTest {
 		assertEquals("5.0",paymentController.getTotalChange());	
 		assertEquals("0.0",""+paymentController.getChangeDue());	
 		assertEquals("[5]",ejectedBills.toString());
-	
+		assertFalse(attendantSignalled);
 	}
 	
 }
