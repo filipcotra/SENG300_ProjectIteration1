@@ -20,11 +20,19 @@ import org.junit.Test;
 
 import com.autovend.Barcode;
 import com.autovend.BarcodedUnit;
+import com.autovend.Bill;
 import com.autovend.Numeral;
+import com.autovend.devices.AbstractDevice;
+import com.autovend.devices.BillDispenser;
 import com.autovend.devices.BillSlot;
 import com.autovend.devices.DisabledException;
+import com.autovend.devices.ElectronicScale;
 import com.autovend.devices.OverloadException;
 import com.autovend.devices.SelfCheckoutStation;
+import com.autovend.devices.SimulationException;
+import com.autovend.devices.observers.AbstractDeviceObserver;
+import com.autovend.devices.observers.BillDispenserObserver;
+import com.autovend.devices.observers.ElectronicScaleObserver;
 import com.autovend.external.ProductDatabases;
 import com.autovend.products.BarcodedProduct;
 import com.autovend.software.AddItemByScanningController;
@@ -48,6 +56,44 @@ public class AddItemByScanningTest {
 	Barcode barcode;
 	BarcodedUnit scannedItem;
 	BarcodedUnit placedItem;
+	MyElectronicScaleObserver observer;
+	Boolean disabled;
+	
+	class MyElectronicScaleObserver implements ElectronicScaleObserver {
+
+		@Override
+		public void reactToEnabledEvent(AbstractDevice<? extends AbstractDeviceObserver> device) {
+			// TODO Auto-generated method stub
+			disabled = false;
+			System.out.println("Machine is enabled");
+		}
+
+		@Override
+		public void reactToDisabledEvent(AbstractDevice<? extends AbstractDeviceObserver> device) {
+			disabled = true;
+			System.out.println("Machine is suspended");
+			
+		}
+
+		@Override
+		public void reactToWeightChangedEvent(ElectronicScale scale, double weightInGrams) {
+			System.out.println(weightInGrams);
+			
+		}
+
+		@Override
+		public void reactToOverloadEvent(ElectronicScale scale) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void reactToOutOfOverloadEvent(ElectronicScale scale) {
+			// TODO Auto-generated method stub
+			
+		}
+
+	}
 	
 	class MyCustomerIO implements CustomerIO {
 		
@@ -113,13 +159,14 @@ public class AddItemByScanningTest {
 	@Before
 	public void setup() {
 		
+		disabled = false;
 		barcode = new Barcode(Numeral.three, Numeral.zero, Numeral.one, Numeral.five, Numeral.nine, Numeral.nine, Numeral.two, Numeral.seven);
 		scannedItem = new BarcodedUnit(barcode, 12);
 		placedItem = scannedItem;
 		selfCheckoutStation = new SelfCheckoutStation(Currency.getInstance("CAD"), new int[] {5,10,20}, 
 				new BigDecimal[] {new BigDecimal(1),new BigDecimal(2)}, 10000, 5);
 		testProduct = new BarcodedProduct(barcode, "example", new BigDecimal(10), 
-				scannedItem.getWeight());
+				12);
 		
 		ProductDatabases.BARCODED_PRODUCT_DATABASE.put(barcode, testProduct);
 		
@@ -131,7 +178,8 @@ public class AddItemByScanningTest {
 		
 		addItemByScanningController = new AddItemByScanningController(selfCheckoutStation, customer, 
 				attendant, paymentController);
-		
+		observer = new MyElectronicScaleObserver();
+		selfCheckoutStation.baggingArea.register(observer);
 	}
 	
 	@Test
@@ -139,7 +187,9 @@ public class AddItemByScanningTest {
 		/**
 		 *  Step 1: Laser Scanner: Detects a barcode and signals this to the System.
 		 */	
-		selfCheckoutStation.mainScanner.scan(customer.scanItem());
+		//selfCheckoutStation.mainScanner.scan(customer.scanItem());
+		selfCheckoutStation.mainScanner.scan(scannedItem);
+		//assertEquals(new MyCustomerIO().scanItem(), this.customer.scanItem());
 		assertEquals(new MyCustomerIO().scanItem(), this.customer.scanItem());
 		/**
 		 * Step 3: System: Determines the characteristics (weight and cost) of the product associated with the 
@@ -158,6 +208,7 @@ public class AddItemByScanningTest {
 		/**
 		 * Step 5: Signals to the Customer I/O to place the scanned item in the Bagging Area.
 		 */
+		selfCheckoutStation.baggingArea.add(placedItem);
 		assertEquals(new MyCustomerIO().placeScannedItemInBaggingArea(), this.customer.placeScannedItemInBaggingArea());
 		
 		/**
@@ -168,22 +219,59 @@ public class AddItemByScanningTest {
 		} catch (OverloadException e) {
 			fail("An OverloadException should not have been thrown");
 		}
-		
+	}
+	
+	@Test
+	public void disabled() {
 		/**
 		 *	Step 2: Blocks the self checkout station from further customer interaction.
 		 *	A DisabledException should be thrown as all devices involved in this use case
 		 *	become disabled during this step.
 		 */
-		/*try {
-			addItemByScanningController.addItemByScanning();
+		try {
+			selfCheckoutStation.mainScanner.scan(scannedItem);
+			selfCheckoutStation.mainScanner.scan(scannedItem);
 		}
 		catch(DisabledException e) {
 			return;
 		}
-		fail("A DisabledException should have been thrown.");*/
-		//assertEquals(new MyCustomerIO().scanItem(), this.customer.scanItem());
-	}
+		fail("A DisabledException should have been thrown.");
+	} 
 	
+	@Test
+	public void reenabled() {
+		/**
+		 *	Step 2: Blocks the self checkout station from further customer interaction.
+		 *	A DisabledException should be thrown as all devices involved in this use case
+		 *	become disabled during this step.
+		 */
+		try {
+			selfCheckoutStation.mainScanner.scan(scannedItem);
+			selfCheckoutStation.baggingArea.add(placedItem);
+			// should unblock the system afterwards.
+			selfCheckoutStation.mainScanner.scan(scannedItem);
+		}
+		catch(DisabledException e) {
+			fail("A DisabledException should not have been thrown.");
+			return;
+		}
+		
+	} 
 	
+	@Test
+	public void weightDiscrepency() {
+		placedItem = new BarcodedUnit(barcode, 15);
+		try {
+			selfCheckoutStation.mainScanner.scan(scannedItem);
+			selfCheckoutStation.baggingArea.add(placedItem);
+			// should not unblock the system afterwards.
+			selfCheckoutStation.mainScanner.scan(scannedItem);
+		}
+		catch(DisabledException e) {
+			return;
+		}
+		fail("A DisabledException should have been thrown.");
+
+	} 
 
 }
