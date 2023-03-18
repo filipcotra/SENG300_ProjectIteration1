@@ -216,7 +216,8 @@ class MyCustomerIO implements CustomerIO {
 				testProduct1 = new BarcodedProduct(barcode1, "Item 1", new BigDecimal(10.0), 12);
 				testProduct2 = new BarcodedProduct(barcode2, "Item 2", new BigDecimal(68.0), 48);
 				testProduct3 = new BarcodedProduct(barcode3, "Item 3", new BigDecimal(50.0), 20);
-				testProduct4 = new BarcodedProduct(barcode4, "Item 4", new BigDecimal(23.0), 83);
+				double price4 = 23.0;
+				testProduct4 = new BarcodedProduct(barcode4, "Item 4", new BigDecimal(25.0), 83);
 							
 				ProductDatabases.BARCODED_PRODUCT_DATABASE.put(barcode1, testProduct1);
 				ProductDatabases.BARCODED_PRODUCT_DATABASE.put(barcode2, testProduct2);
@@ -306,22 +307,23 @@ class MyCustomerIO implements CustomerIO {
 		customer.scanItem(scannedItem4);
 		customer.placeScannedItemInBaggingArea(placedItem4);
 		try {
-			this.selfCheckoutStation.billInput.accept(billTwenty);
+			
 		} catch (Exception e) {fail();}
 		// scan second item
 		customer.scanItem(scannedItem1);
 		customer.placeScannedItemInBaggingArea(placedItem1);
 		try {
 			this.selfCheckoutStation.billInput.accept(billTwenty);
+			this.selfCheckoutStation.billInput.accept(billTwenty);
 		} catch (Exception e) {fail();}
 		// The customer inserts a one-hundred dollar bill
 	
 		assertEquals(	  
-				  "Item 4      $23\n"
+				  "Item 4      $25\n"
 				+ "Item 1      $10\n"
-				+ "Total: $33.00\n"
+				+ "Total: $35.00\n"
 				+ "Paid: $40\n\n"
-				+ "Change: $7.0\n",
+				+ "Change: $5.0\n",
 				selfCheckoutStation.printer.removeReceipt());
 	}
 	
