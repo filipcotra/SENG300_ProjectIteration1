@@ -221,7 +221,7 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 		}
 		/** If the changeDue is less than the lowest denom, call attendant automatically */
 		else if(this.getChangeDue()<this.minDenom) {
-			myAttendant.changeRemainsNoDenom(this.getChangeDue());
+			this.myAttendant.changeRemainsNoDenom(this.getChangeDue());
 			/** No need to suspend machine, nothing is empty its just a lack of denoms */
 		}
 		BillDispenser dispenser;
@@ -238,7 +238,7 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 				catch(EmptyException e) {
 					if(this.denominations[index] == this.minDenom) {
 						/** In this case change will be larger than smallest denom but unpayable */
-						myAttendant.changeRemainsNoDenom(this.getChangeDue());
+						this.myAttendant.changeRemainsNoDenom(this.getChangeDue());
 						this.suspendMachine();
 						break;
 					}
