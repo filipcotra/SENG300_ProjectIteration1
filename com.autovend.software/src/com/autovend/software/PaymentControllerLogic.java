@@ -160,8 +160,8 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 	 * 			The cost of the item added
 	 */
 	public void updateItemCostList(String itemName, String itemCost) {
-		this.itemCostList.add(0,itemName);
-		this.itemCostList.add(0,itemCost);
+		this.itemNameList.add(itemName);
+		this.itemCostList.add(itemCost);
 	}
 	
 	/**

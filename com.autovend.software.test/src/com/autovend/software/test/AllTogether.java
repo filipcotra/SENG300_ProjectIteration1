@@ -187,6 +187,8 @@ class MyCustomerIO implements CustomerIO {
 					selfCheckoutStation.billDispensers.get(10).load(tenDollarBills);
 					selfCheckoutStation.billDispensers.get(20).load(twentyDollarBills);
 					selfCheckoutStation.billDispensers.get(50).load(fiftyDollarBills);
+					selfCheckoutStation.printer.addInk(1024);
+					selfCheckoutStation.printer.addPaper(1024);
 				} catch (SimulationException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -226,7 +228,8 @@ class MyCustomerIO implements CustomerIO {
 				this.paymentController = new PaymentControllerLogic(selfCheckoutStation, customer, attendant, receiptPrinterController);
 				this.addItemByScanningController = new AddItemByScanningController(selfCheckoutStation, customer, attendant, paymentController);
 	}
-	/* Test Case: The customer scans two items. 
+	/* 
+	 * Test Case: The customer scans two items. 
 	 * 
 	 * Description: This test is to see if scanning an item updates the cart total for the 
 	 * payment controller.
@@ -247,19 +250,32 @@ class MyCustomerIO implements CustomerIO {
 		assertEquals(78.0,paymentController.getCartTotal(),0.00);
 	}
 	
-	/* Test Case: The customer pays the cart total. 
-	 * 
-	 * Description: This test is similar to the on before it, where the user scans two items.
-	 * In this test case, the user will attempt to pay the cart total with no change remaining
-	 * (for now). The goal of this test is to determine if the receipt printer is updating the 
-	 *  
-	 * Expected Result: Before the scan, the cart total should be 0. After scanning scannedItem1,
-	 * it should up date to 10 dollars. Then, after bagging the item they scanned, they will then
-	 * scan scannedItem3. The final cart total expected should be 0.00 dollars.
+	/* 
+	 * Test Case: The customer pays the cart total
 	 */
 	@Test
 	public void payForCartTotal() {
-		assertEquals(0.0,this.paymentController.getCartTotal(),0.00);
+		// scan item
+		customer.scanItem(scannedItem3);
+		customer.placeScannedItemInBaggingArea(placedItem3);
+		// The customer inserts a one-hundred dollar bill
+		try {
+			this.selfCheckoutStation.billInput.accept(billFifty);
+		} catch (Exception e) {fail();}
+		assertEquals(	  
+				  "Item 3      $50\n"
+				+ "Total: $50.00\n"
+				+ "Paid: $50\n\n"
+				+ "Change: $0.0\n",
+				selfCheckoutStation.printer.removeReceipt());
+	}
+	
+	/* 
+	 * Test Case: The customer pays the cart total
+	 * with change
+	 */
+	@Test
+	public void payForCartTotalWithChange() {
 		// scan first item
 		customer.scanItem(scannedItem1);
 		customer.placeScannedItemInBaggingArea(placedItem1);
@@ -270,7 +286,43 @@ class MyCustomerIO implements CustomerIO {
 		try {
 			this.selfCheckoutStation.billInput.accept(billHundred);
 		} catch (Exception e) {fail();}
-		assertEquals(0.00,this.paymentController.getCartTotal(),0.00);
+		assertEquals(	  
+				  "Item 1      $10\n"
+				+ "Item 3      $50\n"
+				+ "Total: $60.00\n"
+				+ "Paid: $100\n\n"
+				+ "Change: $40.0\n",
+				selfCheckoutStation.printer.removeReceipt());
+	}
+	
+	/* 
+	 * Test Case: The customer pays the cart total, but not all at once.
+	 * 
+	 * Description, the user adds an item, then pays, then adds and pays once more.
+	 */
+	@Test
+	public void addPayAddPay() {
+		// scan first item
+		customer.scanItem(scannedItem4);
+		customer.placeScannedItemInBaggingArea(placedItem4);
+		try {
+			this.selfCheckoutStation.billInput.accept(billTwenty);
+		} catch (Exception e) {fail();}
+		// scan second item
+		customer.scanItem(scannedItem1);
+		customer.placeScannedItemInBaggingArea(placedItem1);
+		try {
+			this.selfCheckoutStation.billInput.accept(billTwenty);
+		} catch (Exception e) {fail();}
+		// The customer inserts a one-hundred dollar bill
+	
+		assertEquals(	  
+				  "Item 4      $23\n"
+				+ "Item 1      $10\n"
+				+ "Total: $33.00\n"
+				+ "Paid: $40\n\n"
+				+ "Change: $7.0\n",
+				selfCheckoutStation.printer.removeReceipt());
 	}
 	
 	
