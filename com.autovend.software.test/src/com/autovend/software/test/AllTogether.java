@@ -9,6 +9,7 @@
 package com.autovend.software.test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.ByteArrayOutputStream;
@@ -96,18 +97,12 @@ class MyCustomerIO implements CustomerIO {
 
 	@Override
 	public void scanItem(BarcodedUnit item) {
-		selfCheckoutStation.mainScanner.scan(item);
+		while(selfCheckoutStation.mainScanner.scan(item) == false);
 	}
 
 	@Override
 	public void placeScannedItemInBaggingArea(BarcodedUnit item) {
 		selfCheckoutStation.baggingArea.add(item);
-	}
-
-	@Override
-	public void showUpdatedTotal(Double totalRemaining) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
@@ -127,6 +122,12 @@ class MyCustomerIO implements CustomerIO {
 		// TODO Auto-generated method stub
 		
 	}
+
+	@Override
+	public void showUpdatedTotal(BigDecimal bigDecimal) {
+		// TODO Auto-generated method stub
+		
+	}
 		
 		
 	}
@@ -140,13 +141,13 @@ class MyCustomerIO implements CustomerIO {
 		}
 
 		@Override
-		public void changeRemainsNoDenom(double changeLeft) {
+		public void printDuplicateReceipt() {
 			// TODO Auto-generated method stub
 			
 		}
 
 		@Override
-		public void printDuplicateReceipt() {
+		public void changeRemainsNoDenom(BigDecimal bigDecimal) {
 			// TODO Auto-generated method stub
 			
 		}
@@ -241,14 +242,14 @@ class MyCustomerIO implements CustomerIO {
 	 */
 	@Test
 	public void updateCartTotal() {
-		assertEquals(0.0,paymentController.getCartTotal(),0.00);
+		assertTrue(BigDecimal.ZERO.compareTo(paymentController.getCartTotal())==0);
 		// scan first item
 		customer.scanItem(scannedItem1);
 		customer.placeScannedItemInBaggingArea(placedItem1);
 		// scan second item
 		customer.scanItem(scannedItem2);
 		customer.placeScannedItemInBaggingArea(placedItem2);
-		assertEquals(78.0,paymentController.getCartTotal(),0.00);
+		assertTrue(BigDecimal.valueOf(78).compareTo(paymentController.getCartTotal())==0);
 	}
 	
 	/* 
@@ -266,7 +267,7 @@ class MyCustomerIO implements CustomerIO {
 		assertEquals(	  
 				  "Item 3      $50\n"
 				+ "Total: $50.00\n"
-				+ "Paid: $50\n\n"
+				+ "Paid: $50.0\n\n"
 				+ "Change: $0.0\n",
 				selfCheckoutStation.printer.removeReceipt());
 	}
@@ -291,7 +292,7 @@ class MyCustomerIO implements CustomerIO {
 				  "Item 1      $10\n"
 				+ "Item 3      $50\n"
 				+ "Total: $60.00\n"
-				+ "Paid: $100\n\n"
+				+ "Paid: $100.0\n\n"
 				+ "Change: $40.0\n",
 				selfCheckoutStation.printer.removeReceipt());
 	}
@@ -299,7 +300,8 @@ class MyCustomerIO implements CustomerIO {
 	/* 
 	 * Test Case: The customer pays the cart total, but not all at once.
 	 * 
-	 * Description, the user adds an item, then pays, then adds and pays once more.
+	 * Description: The user adds an item, then pays, then adds and pays once more.
+	 * This was specified as necessary as per the discussion board.
 	 */
 	@Test
 	public void addPayAddPay() {
@@ -316,16 +318,20 @@ class MyCustomerIO implements CustomerIO {
 			this.selfCheckoutStation.billInput.accept(billTwenty);
 			this.selfCheckoutStation.billInput.accept(billTwenty);
 		} catch (Exception e) {fail();}
-		// The customer inserts a one-hundred dollar bill
-	
-		assertEquals(	  
+	assertEquals(	  
 				  "Item 4      $25\n"
 				+ "Item 1      $10\n"
 				+ "Total: $35.00\n"
-				+ "Paid: $40\n\n"
+				+ "Paid: $40.0\n\n"
 				+ "Change: $5.0\n",
 				selfCheckoutStation.printer.removeReceipt());
 	}
-	
+	/*
+	 * Given that all of the individual controller classes were tested
+	 * individually, these tests should be sufficient to ensure that
+	 * they work as a whole. No additional tests are needed, as this
+	 * test set is only to see that they all work together, which they
+	 * happen to do based on the scenarios observed here.
+	 */
 	
 }

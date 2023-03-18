@@ -8,6 +8,7 @@
 
 package com.autovend.software;
 
+import java.math.BigDecimal;
 
 /**
  * This interface can be used in testing to simulate attendant interactions in certain use cases.
@@ -25,10 +26,10 @@ public interface AttendantIO {
 	 * Simulates an attendant being informed of a change discrepancy.
 	 * Returns nothing.
 	 * 
-	 * @param changeLeft
+	 * @param bigDecimal
 	 * 				Amount of change left that must be given to customer
 	 */
-	public void changeRemainsNoDenom(double changeLeft);
+	public void changeRemainsNoDenom(BigDecimal changeLeft);
 	
 	/**
 	 * Simulates informing the attendant that a duplicate receipt 

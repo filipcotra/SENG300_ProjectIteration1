@@ -120,11 +120,11 @@ public class AddItemByScanningController implements BarcodeScannerObserver, Elec
 		this.blockSystem();
 		
 		// Get product details from the barcode (Step 3)
-		setProduct(ProductDatabases.BARCODED_PRODUCT_DATABASE.get(barcode));
+		this.setProduct(ProductDatabases.BARCODED_PRODUCT_DATABASE.get(barcode));
 		
 		// Update cart total and item cost list
 		BigDecimal price = product.getPrice();
-		this.paymentController.updateCartTotal(price.floatValue());
+		this.paymentController.updateCartTotal(price);
 		this.paymentController.updateItemCostList(product.getDescription(), price.toString());
 
 		

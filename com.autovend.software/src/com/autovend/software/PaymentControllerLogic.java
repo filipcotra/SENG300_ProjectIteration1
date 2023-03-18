@@ -8,6 +8,7 @@
 
 package com.autovend.software;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Currency;
@@ -36,21 +37,21 @@ import com.autovend.devices.SimulationException;
  * @author Filip Cotra
  */
 public class PaymentControllerLogic implements BillValidatorObserver, BillDispenserObserver, BillSlotObserver {
-	private double cartTotal;
-	private double changeDue;
+	private BigDecimal cartTotal;
+	private BigDecimal changeDue;
 	private SelfCheckoutStation station;
 	private int[] denominations;
 	private Map<Integer, BillDispenser> dispensers;
-	private int maxDenom;
-	private int minDenom;
+	private BigDecimal maxDenom;
+	private BigDecimal minDenom;
 	private ReceiptPrinter printer;
 	private CustomerIO myCustomer;
 	private AttendantIO myAttendant;
 	private PrintReceipt printerLogic;
 	private ArrayList<String> itemNameList = new ArrayList<String>();
 	private ArrayList<String> itemCostList = new ArrayList<String>();
-	private int amountPaid;
-	private double totalChange;
+	private BigDecimal amountPaid;
+	private BigDecimal totalChange;
 	private BillSlot output;
 	
 	/**
@@ -72,8 +73,8 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 		this.station.billValidator.register(this);
 		this.denominations = station.billDenominations;
 		Arrays.sort(this.denominations);
-		this.maxDenom = Arrays.stream(this.denominations).max().getAsInt();
-		this.minDenom = Arrays.stream(this.denominations).min().getAsInt();
+		this.maxDenom = BigDecimal.valueOf(Arrays.stream(this.denominations).max().getAsInt());
+		this.minDenom = BigDecimal.valueOf(Arrays.stream(this.denominations).min().getAsInt());
 		this.dispensers = station.billDispensers;
 		this.printer = station.printer;
 		for (int value : this.denominations) {
@@ -82,10 +83,12 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 		this.myCustomer = customer;
 		this.myAttendant = attendant;
 		this.printerLogic = printerLogic;
-		this.amountPaid = 0;
+		this.amountPaid = BigDecimal.valueOf(0.0);
 		this.output = station.billOutput;
 		this.output.register(this);
-		this.cartTotal = 0.0;
+		this.cartTotal = BigDecimal.valueOf(0.0);
+		this.totalChange = BigDecimal.valueOf(0.0);
+		this.changeDue = BigDecimal.valueOf(0.0);
 	}
 
 	/**
@@ -94,8 +97,8 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 	 * @param billValue
 	 * 			The value of the bill inserted
 	 */
-	public void updateAmountPaid(int value) {
-		this.amountPaid += value;
+	public void updateAmountPaid(BigDecimal value) {
+		this.amountPaid = this.amountPaid.add(value);
 	}
 	
 	/**
@@ -113,7 +116,7 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 	 * @param amount
 	 * 			Amount of change to be due
 	 */
-	public void setTotalChange(double amount) {
+	public void setTotalChange(BigDecimal amount) {
 		this.totalChange = amount;
 	}
 	
@@ -133,8 +136,8 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 	 * @param price
 	 * 		amount to be added to running total
 	 */
-	public void updateCartTotal(double price) {
-		this.cartTotal += price;
+	public void updateCartTotal(BigDecimal price) {
+		this.cartTotal = this.cartTotal.add(price);
 	}
 
 	/**
@@ -145,7 +148,7 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 	 * 		amount to set the total cost of the cart
 	 */
 	
-	public void setCartTotal(double total) {
+	public void setCartTotal(BigDecimal total) {
 		this.cartTotal = total;
 	}
 
@@ -167,7 +170,7 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 	/**
 	 * Getter for cartTotal. Just returns value.
 	 */
-	public double getCartTotal() {
+	public BigDecimal getCartTotal() {
 		return this.cartTotal;
 	}
 	
@@ -178,14 +181,14 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 	 * @param change
 	 * 		amount of change that is due
 	 */
-	public void setChangeDue(double change) {
+	public void setChangeDue(BigDecimal change) {
 		this.changeDue = change;
 	}
 	
 	/**
 	 * Getter for cartTotal. Returns double. No need to call from any other class.
 	 */
-	public double getChangeDue() {
+	public BigDecimal getChangeDue() {
 		return this.changeDue;
 	}
 
@@ -216,11 +219,11 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 	 * (Step 7)
 	 */
 	public void dispenseChange() {
-		if(this.getChangeDue() == 0) {
+		if(this.getChangeDue().compareTo(BigDecimal.valueOf(0.0)) == 0) {
 			throw new SimulationException(new Exception("This should never happen"));
 		}
 		/** If the changeDue is less than the lowest denom, call attendant automatically */
-		else if(this.getChangeDue()<this.minDenom) {
+		else if(this.getChangeDue().compareTo(this.minDenom) == -1) {
 			this.myAttendant.changeRemainsNoDenom(this.getChangeDue());
 			/** No need to suspend machine, nothing is empty its just a lack of denoms */
 		}
@@ -229,14 +232,14 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 		for(int index = this.denominations.length-1 ; index >= 0 ; index--) {
 			dispenser = this.dispensers.get(this.denominations[index]);
 			/** If the value of the bill is less than or equal to the change and change is payable */
-			if(this.denominations[index] <= this.getChangeDue()) {
+			if(BigDecimal.valueOf(this.denominations[index]).compareTo(this.getChangeDue()) <= 0) {
 				try {
 					dispenser.emit();
 					index++;
 				}
 				/** If empty and not the smallest denom, move on. If the smallest denom, inform attendant */
 				catch(EmptyException e) {
-					if(this.denominations[index] == this.minDenom) {
+					if(BigDecimal.valueOf(this.denominations[index]).compareTo(this.minDenom) == 0) {
 						/** In this case change will be larger than smallest denom but unpayable */
 						this.myAttendant.changeRemainsNoDenom(this.getChangeDue());
 						this.suspendMachine();
@@ -258,16 +261,16 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 	 * Subtracts value from the cart based on the value of the bill
 	 * added. (Step 2, Step 3, Step 5, Step 6)
 	 */
-	public void payBill(int billValue) {
+	public void payBill(BigDecimal billValue) {
 		this.updateAmountPaid(billValue);
-		this.setCartTotal(this.getCartTotal()-billValue);
+		this.setCartTotal(this.getCartTotal().subtract(billValue));
 		myCustomer.showUpdatedTotal(this.getCartTotal());
 		/** If the customer has paid their cart, check for change */
-		if(this.getCartTotal() <= 0) {
-			this.setChangeDue(0.00 - this.getCartTotal());
+		if(this.getCartTotal().compareTo(BigDecimal.valueOf(0.0)) <= 0) {
+			this.setChangeDue(BigDecimal.valueOf(0.0).subtract(this.getCartTotal()));
 			this.setTotalChange(this.getChangeDue());
-			this.setCartTotal(0.00); //Set cart total after change has been calculated.
-			if(this.getChangeDue() > 0) {
+			this.setCartTotal(BigDecimal.valueOf(0.0)); //Set cart total after change has been calculated.
+			if(this.getChangeDue().compareTo(BigDecimal.valueOf(0.0)) > 0) {
 				this.dispenseChange();
 			}
 			else {
@@ -295,7 +298,7 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 	 */
 	@Override
 	public void reactToValidBillDetectedEvent(BillValidator validator, Currency currency, int value) {
-		this.payBill(value);
+		this.payBill(BigDecimal.valueOf(value));
 	}
 
 	@Override
@@ -328,8 +331,8 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 	 */
 	@Override
 	public void reactToBillRemovedEvent(BillDispenser dispenser, Bill bill) {
-		this.setChangeDue(this.getChangeDue()-bill.getValue());
-		if(this.getChangeDue() > 0.00) {
+		this.setChangeDue(this.getChangeDue().subtract(BigDecimal.valueOf(bill.getValue())));
+		if(this.getChangeDue().compareTo(BigDecimal.valueOf(0.0)) > 0) {
 			this.dispenseChange();
 		}
 		else {

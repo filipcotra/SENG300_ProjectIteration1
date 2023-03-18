@@ -54,22 +54,28 @@ public class AddItemByScanningTest {
 	ByteArrayOutputStream baos;
 	PrintStream ps;
 	boolean approveFlag;
+	BarcodedProduct actualProduct;
 	class MyCustomerIO implements CustomerIO {
 		
 		
 		@Override
 		public void scanItem(BarcodedUnit item) {
-			selfCheckoutStation.mainScanner.scan(item);
+			/* 
+			 * This is EXTREMELY important. This is why the tests were
+			 * inconsistent - there is a random number generation to test
+			 * for failed scans, and this is needed to ensure that if a 
+			 * failed scan happens, the customer will scan again. This is
+			 * why some tests were failing on some runs but not others.
+			 * This should be included in all future stubbed attempts
+			 * to simulate customer scanning, or else the same issues
+			 * will arise.
+			 */
+			while(selfCheckoutStation.mainScanner.scan(item) == false);
 		}
 
 		@Override
 		public void placeScannedItemInBaggingArea(BarcodedUnit item) {
 			selfCheckoutStation.baggingArea.add(item);
-		}
-
-		@Override
-		public void showUpdatedTotal(Double totalRemaining) {
-			// Implement some basic function
 		}
 
 		@Override
@@ -91,6 +97,12 @@ public class AddItemByScanningTest {
 			customerNotified = true;
 		}
 
+		@Override
+		public void showUpdatedTotal(BigDecimal total) {
+			// TODO Auto-generated method stub
+			
+		}
+
 
 		
 	}
@@ -103,12 +115,13 @@ public class AddItemByScanningTest {
 		}
 
 		@Override
-		public void changeRemainsNoDenom(double changeLeft) {
-			// Implement some basic function		
+		public void printDuplicateReceipt() {
+			// TODO Auto-generated method stub
+			
 		}
 
 		@Override
-		public void printDuplicateReceipt() {
+		public void changeRemainsNoDenom(BigDecimal changeLeft) {
 			// TODO Auto-generated method stub
 			
 		}
@@ -120,13 +133,14 @@ public class AddItemByScanningTest {
 	 */
 	@Before
 	public void setup() {
+		ProductDatabases.BARCODED_PRODUCT_DATABASE.clear();
 		// Setting up new print stream to catch printed output, used to test terminal output
 		baos = new ByteArrayOutputStream();
 		ps = new PrintStream(baos);
 		System.setOut(ps);		
 		customerNotified = false;
 		barcode = new Barcode(Numeral.three, Numeral.zero, Numeral.one, Numeral.five, Numeral.nine, Numeral.nine, Numeral.two, Numeral.seven);
-		scannedItem = new BarcodedUnit(barcode, 12);
+		scannedItem = new BarcodedUnit(barcode, 12.0);
 		placedItem = scannedItem;
 		selfCheckoutStation = new SelfCheckoutStation(Currency.getInstance("CAD"), new int[] {5,10,20}, 
 				new BigDecimal[] {new BigDecimal(1),new BigDecimal(2)}, 10000, 5);
@@ -134,7 +148,6 @@ public class AddItemByScanningTest {
 				12);
 		
 		ProductDatabases.BARCODED_PRODUCT_DATABASE.put(barcode, testProduct);
-		
 		customer = new MyCustomerIO();
 		attendant = new MyAttendantIO();
 		
@@ -146,36 +159,13 @@ public class AddItemByScanningTest {
 		approveFlag = true;
 	}
 	
-	@After
-	public void tearDown() {
-		// Setting up new print stream to catch printed output, used to test terminal output
-		baos = null;
-		ps = null;		
-		customerNotified = null;
-		barcode = null;
-		scannedItem = null;
-		placedItem = null;
-		selfCheckoutStation = null;
-		testProduct = null;
-		
-		customer = null;
-		attendant = null;
-		
-		receiptPrinterController = null;
-		paymentController = null;
-		
-		addItemByScanningController = null;
-	}
-	
-	
-	
 	@Test
 	public void detectBarcode() {
 		/**
 		 *  Step 1: Laser Scanner: Detects a barcode and signals this to the System.
 		 */	
 		customer.scanItem(scannedItem);
-		BarcodedProduct actualProduct = addItemByScanningController.getProduct();
+		actualProduct = addItemByScanningController.getProduct();
 		assertEquals(testProduct.getBarcode(),actualProduct.getBarcode());
 	}
 	
@@ -186,6 +176,7 @@ public class AddItemByScanningTest {
 		 *	A DisabledException should be thrown as all devices involved in this use case
 		 *	become disabled during this step.
 		 */
+		approveFlag = false;
 		try {
 			customer.scanItem(scannedItem);
 			customer.scanItem(scannedItem);
@@ -203,8 +194,8 @@ public class AddItemByScanningTest {
 		 * barcode.
 		 */
 		customer.scanItem(scannedItem);
-		BarcodedProduct actualProduct = addItemByScanningController.getProduct();
-		assertEquals(12,actualProduct.getExpectedWeight(),0.00);
+		actualProduct = addItemByScanningController.getProduct();
+		assertEquals(12.0,actualProduct.getExpectedWeight(),0.00);
 		BigDecimal expectedPrice = new BigDecimal(10);
 		assertEquals(expectedPrice,actualProduct.getPrice());
 	}
@@ -216,7 +207,7 @@ public class AddItemByScanningTest {
 		 */
 		assertEquals(0, addItemByScanningController.getExpectedWeight(), 0.00);
 		customer.scanItem(scannedItem);
-		assertEquals(12, addItemByScanningController.getExpectedWeight(), 0.00);
+		assertEquals(12.0, addItemByScanningController.getExpectedWeight(), 0.00);
 	}
 	
 	@Test
@@ -228,6 +219,7 @@ public class AddItemByScanningTest {
 		assertEquals(true, customerNotified);
 	}
 	
+	@Test
 	public void notifyCustomerOnce() {
 		/**
 		 * Step 5: System: Updates the expected weight from the Bagging Area

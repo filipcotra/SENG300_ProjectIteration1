@@ -128,13 +128,6 @@ public class PaymentWithCashTest {
 	
 	class MyCustomerIO implements CustomerIO {
 
-	
-		@Override
-		public void showUpdatedTotal(Double totalRemaining) {
-			// TODO Auto-generated method stub
-			
-		}
-
 		@Override
 		public void thankCustomer() {
 			// TODO Auto-generated method stub
@@ -163,6 +156,12 @@ public class PaymentWithCashTest {
 			// TODO Auto-generated method stub
 			
 		}
+
+		@Override
+		public void showUpdatedTotal(BigDecimal total) {
+			// TODO Auto-generated method stub
+			
+		}
 	
 	}
 	
@@ -173,16 +172,17 @@ public class PaymentWithCashTest {
 				// TODO Auto-generated method stub
 				return false;
 			}
-	
-			@Override
-			public void changeRemainsNoDenom(double changeLeft) {
-				System.out.print("changeRemainsNoDenom Called: " + changeLeft);
-				attendantSignalled = true;
-			}
 
 			@Override
 			public void printDuplicateReceipt() {
 				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void changeRemainsNoDenom(BigDecimal changeLeft) {
+				System.out.print("changeRemainsNoDenom Called: " + changeLeft);
+				attendantSignalled = true;
 				
 			}
 	}
@@ -271,7 +271,7 @@ public class PaymentWithCashTest {
 		}
 		receiptPrinterController = new PrintReceipt(selfCheckoutStation, selfCheckoutStation.printer, customer, attendant);
 		paymentController = new PaymentControllerLogic(selfCheckoutStation, customer, attendant, receiptPrinterController);
-		paymentController.setCartTotal(0);
+		paymentController.setCartTotal(BigDecimal.ZERO);
 		
 	}
 	
@@ -312,7 +312,7 @@ public class PaymentWithCashTest {
 	@Test
 	public void payLessThanTotal_Test() {
 		
-		paymentController.setCartTotal(100.00);
+		paymentController.setCartTotal(BigDecimal.valueOf(100.00));
 		try {
 			selfCheckoutStation.billInput.accept(billTwenty);
 		} catch (DisabledException e) {
@@ -320,8 +320,8 @@ public class PaymentWithCashTest {
 		} catch (OverloadException e) {
 			fail("An OverloadException should not have been thrown");
 		}
-		assertEquals(80.00,paymentController.getCartTotal(),0.00);
-		assertEquals("20",paymentController.getAmountPaid());
+		assertTrue(BigDecimal.valueOf(80).compareTo(paymentController.getCartTotal()) == 0);
+		assertEquals("20.0",paymentController.getAmountPaid());
 	}
 	
 	/* Test Case: The customer pays with a single bill on two separate instances. 
@@ -341,17 +341,17 @@ public class PaymentWithCashTest {
 	@Test
 	public void payTwice() {
 		
-		paymentController.setCartTotal(100.00);
+		paymentController.setCartTotal(BigDecimal.valueOf(100.00));
 		try {
 			// The customer first inserts a twenty dollar bill into the bill slot.
 			selfCheckoutStation.billInput.accept(billTwenty);
-			assertEquals(80.00,paymentController.getCartTotal(),0.00);
-			assertEquals("20",paymentController.getAmountPaid());
+			assertTrue(BigDecimal.valueOf(80.00).compareTo(paymentController.getCartTotal()) == 0);
+			assertEquals("20.0",paymentController.getAmountPaid());
 			
 			// The customer then inserts a five dollar bill into the bill slot.
 			selfCheckoutStation.billInput.accept(billFive);
-			assertEquals(75.00,paymentController.getCartTotal(),0.00);
-			assertEquals("25",paymentController.getAmountPaid());
+			assertTrue(BigDecimal.valueOf(75.00).compareTo(paymentController.getCartTotal()) == 0);
+			assertEquals("25.0",paymentController.getAmountPaid());
 			
 		} catch (DisabledException e) {
 			fail("A Disabled Exception should not have been thrown");
@@ -376,12 +376,12 @@ public class PaymentWithCashTest {
 	@Test
 	public void payFullNoChange() {
 		
-		paymentController.setCartTotal(50.00);
+		paymentController.setCartTotal(BigDecimal.valueOf(50.00));
 		try {
 			// The customer pays the full fifty dollars using a single fifty dollar bill.
 			selfCheckoutStation.billInput.accept(billFifty);
-			assertEquals(0.00,paymentController.getCartTotal(),0.00);
-			assertEquals("50",paymentController.getAmountPaid());
+			assertTrue(BigDecimal.ZERO.compareTo(paymentController.getCartTotal()) == 0);
+			assertEquals("50.0",paymentController.getAmountPaid());
 			assertEquals("0.0",paymentController.getTotalChange());
 			
 		} catch (DisabledException e) {
@@ -407,13 +407,13 @@ public class PaymentWithCashTest {
 	@Test
 	public void payFullWithChange_Test(){
 		
-		paymentController.setCartTotal(10.00);
+		paymentController.setCartTotal(BigDecimal.valueOf(10.00));
 		try {
 			// The customer pays the full fifty dollars using a single fifty dollar bill.
 			System.out.println("Payment: " + billFifty.getValue());
 			selfCheckoutStation.billInput.accept(billFifty);
-			assertEquals(0.00,paymentController.getCartTotal(),0.00);
-			assertEquals("50",paymentController.getAmountPaid());
+			assertTrue(BigDecimal.ZERO.compareTo(paymentController.getCartTotal()) == 0);
+			assertEquals("50.0",paymentController.getAmountPaid());
 			assertEquals("40.0",paymentController.getTotalChange());
 			
 		} catch (DisabledException e) {
@@ -439,7 +439,7 @@ public class PaymentWithCashTest {
 		billObserverStub = new DispenserStub();
 		selfCheckoutStation.billDispensers.get(20).register(billObserverStub);
 		selfCheckoutStation.billDispensers.get(10).register(billObserverStub);
-		paymentController.setCartTotal(20.00);		
+		paymentController.setCartTotal(BigDecimal.valueOf(20.00));		
 		selfCheckoutStation.billInput.accept(billFifty);
 		assertEquals("30.0",paymentController.getTotalChange());
 		assertEquals("0.0",""+paymentController.getChangeDue());
@@ -454,9 +454,9 @@ public class PaymentWithCashTest {
 	 */
 	@Test
 	public void cartUpdate_Test() {
-		paymentController.updateCartTotal(20.0);
-		paymentController.updateCartTotal(20.0);
-		assertTrue(40.0 == paymentController.getCartTotal());
+		paymentController.updateCartTotal(BigDecimal.valueOf(20.00));
+		paymentController.updateCartTotal(BigDecimal.valueOf(20.00));
+		assertTrue(BigDecimal.valueOf(40.00).compareTo(paymentController.getCartTotal()) == 0);
 	}
 	
 	/* Test Case: Testing dispenseChange when change is 0.
@@ -467,7 +467,7 @@ public class PaymentWithCashTest {
 	 */
 	@Test (expected = SimulationException.class)
 	public void dispenseZeroChange_Test() {
-		paymentController.setChangeDue(0.0);
+		paymentController.setChangeDue(BigDecimal.ZERO);
 		paymentController.dispenseChange();
 	}
 	
@@ -480,7 +480,7 @@ public class PaymentWithCashTest {
 	 */
 	@Test
 	public void changeTooSmallAttendantIO_Test() throws OverloadException {
-		paymentController.setCartTotal(3.00);
+		paymentController.setCartTotal(BigDecimal.valueOf(3.00));
 		selfCheckoutStation.billInput.accept(billFive);
 		String expected = "changeRemainsNoDenom Called: 2.0";
 		assertEquals(expected,baos.toString());
@@ -502,7 +502,7 @@ public class PaymentWithCashTest {
 		billObserverStub = new DispenserStub();
 		selfCheckoutStation.billDispensers.get(20).register(billObserverStub);
 		selfCheckoutStation.billDispensers.get(10).register(billObserverStub);
-		paymentController.setCartTotal(30.00);		
+		paymentController.setCartTotal(BigDecimal.valueOf(30.00));		
 		selfCheckoutStation.billInput.accept(billFifty);
 		assertEquals("20.0",paymentController.getTotalChange());
 		assertEquals("0.0",""+paymentController.getChangeDue());
@@ -525,7 +525,7 @@ public class PaymentWithCashTest {
 		billObserverStub = new DispenserStub();
 		selfCheckoutStation.billDispensers.get(20).register(billObserverStub);
 		selfCheckoutStation.billDispensers.get(10).register(billObserverStub);
-		paymentController.setCartTotal(5.00);		
+		paymentController.setCartTotal(BigDecimal.valueOf(5.00));		
 		try{
 			selfCheckoutStation.billInput.accept(billTen);
 			fail();
@@ -554,7 +554,7 @@ public class PaymentWithCashTest {
 	public void totalChangeDueFiveDollars() throws DisabledException, OverloadException{
 		billObserverStub = new DispenserStub();
 		selfCheckoutStation.billDispensers.get(5).register(billObserverStub);
-		paymentController.setCartTotal(45.00);		
+		paymentController.setCartTotal(BigDecimal.valueOf(45.00));		
 		selfCheckoutStation.billInput.accept(billFifty);
 		assertEquals("5.0",paymentController.getTotalChange());	
 		assertEquals("0.0",""+paymentController.getChangeDue());	

@@ -50,11 +50,6 @@ public class ReceiptPrinterTest {
 	ByteArrayOutputStream baos;
 	PrintStream ps;
 	class MyCustomerIO implements CustomerIO {
-		
-			@Override
-			public void showUpdatedTotal(Double totalRemaining) {
-				// TODO Auto-generated method stub	
-			}
 	
 			@Override
 			public void thankCustomer() {
@@ -83,6 +78,12 @@ public class ReceiptPrinterTest {
 				// TODO Auto-generated method stub
 				
 			}
+
+			@Override
+			public void showUpdatedTotal(BigDecimal total) {
+				// TODO Auto-generated method stub
+				
+			}
 		
 		}
 	
@@ -95,13 +96,14 @@ public class ReceiptPrinterTest {
 		}
 	
 		@Override
-		public void changeRemainsNoDenom(double changeLeft) {
-			// TODO Auto-generated method stub	
-		}
-	
-		@Override
 		public void printDuplicateReceipt() {
 			System.out.print("printDuplicate Called");	
+		}
+
+		@Override
+		public void changeRemainsNoDenom(BigDecimal changeLeft) {
+			// TODO Auto-generated method stub
+			
 		}
 	}
 	

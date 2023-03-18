@@ -8,6 +8,8 @@
 
 package com.autovend.software;
 
+import java.math.BigDecimal;
+
 import com.autovend.BarcodedUnit;
 import com.autovend.devices.BillSlot;
 
@@ -40,10 +42,10 @@ public interface CustomerIO {
 	 * cart based on how much they have paid. This is step 4 in "Pay with Cash."
 	 * Returns nothing.
 	 * 
-	 * @param totalRemaining
+	 * @param bigDecimal
 	 * 					The total remaining to pay from the customers cart
 	 */
-	public void showUpdatedTotal(Double totalRemaining);
+	public void showUpdatedTotal(BigDecimal total);
 	
 	/**
 	 * Simulates steps 5 and 6 of the Print Receipt use case by thanking the
