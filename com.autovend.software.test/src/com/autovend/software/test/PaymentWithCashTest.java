@@ -71,7 +71,7 @@ public class PaymentWithCashTest {
 	final PrintStream originalOut = System.out;
 	ByteArrayOutputStream baos;
 	PrintStream ps;
-	Boolean attendantSignalled = false;
+	Boolean attendantSignalled;
 	
 	class DispenserStub implements BillDispenserObserver {
 
@@ -229,6 +229,7 @@ public class PaymentWithCashTest {
 	
 	@Before
 	public void setUp() {
+		attendantSignalled = false;
 		// Setting up new print stream to catch printed output, used to test terminal output
 		baos = new ByteArrayOutputStream();
 		ps = new PrintStream(baos);

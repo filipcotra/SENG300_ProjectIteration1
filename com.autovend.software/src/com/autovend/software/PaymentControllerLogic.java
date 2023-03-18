@@ -85,6 +85,7 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 		this.amountPaid = 0;
 		this.output = station.billOutput;
 		this.output.register(this);
+		this.cartTotal = 0.0;
 	}
 
 	/**
@@ -259,7 +260,7 @@ public class PaymentControllerLogic implements BillValidatorObserver, BillDispen
 	 */
 	public void payBill(int billValue) {
 		this.updateAmountPaid(billValue);
-		this.setCartTotal(this.getCartTotal() - billValue);
+		this.setCartTotal(this.getCartTotal()-billValue);
 		myCustomer.showUpdatedTotal(this.getCartTotal());
 		/** If the customer has paid their cart, check for change */
 		if(this.getCartTotal() <= 0) {

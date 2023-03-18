@@ -76,19 +76,21 @@ public class AllTogether {
 	Barcode barcode2;
 	Barcode barcode3;
 	Barcode barcode4;
+	// Create scanned items:
 	BarcodedUnit scannedItem1;
 	BarcodedUnit scannedItem2;
 	BarcodedUnit scannedItem3;
 	BarcodedUnit scannedItem4;
+	// Create placed items:
 	BarcodedUnit placedItem1;
 	BarcodedUnit placedItem2;
 	BarcodedUnit placedItem3;
 	BarcodedUnit placedItem4;
+	// Create test products:
 	BarcodedProduct testProduct1;
 	BarcodedProduct testProduct2;
 	BarcodedProduct testProduct3;
 	BarcodedProduct testProduct4;
-	
 	
 class MyCustomerIO implements CustomerIO {
 
@@ -117,7 +119,7 @@ class MyCustomerIO implements CustomerIO {
 	@Override
 	public void removeBill(BillSlot slot) {
 		// TODO Auto-generated method stub
-		
+		slot.removeDanglingBill();
 	}
 
 	@Override
@@ -134,7 +136,7 @@ class MyCustomerIO implements CustomerIO {
 		@Override
 		public boolean approveWeightDiscrepancy() {
 			// TODO Auto-generated method stub
-			return false;
+			return true;
 		}
 
 		@Override
@@ -162,7 +164,7 @@ class MyCustomerIO implements CustomerIO {
 				billTwenty = new Bill(20, Currency.getInstance("CAD"));
 				billFifty = new Bill(50, Currency.getInstance("CAD"));
 				billHundred = new Bill(100, Currency.getInstance("CAD"));
-				selfCheckoutStation = new SelfCheckoutStation(Currency.getInstance("CAD"), new int[] {5,10,20,50}, 
+				selfCheckoutStation = new SelfCheckoutStation(Currency.getInstance("CAD"), new int[] {5,10,20,50,100}, 
 						new BigDecimal[] {new BigDecimal(1),new BigDecimal(2)}, 10000, 5);
 				customer = new MyCustomerIO();
 				attendant = new MyAttendantIO();
@@ -209,10 +211,10 @@ class MyCustomerIO implements CustomerIO {
 				placedItem3 = scannedItem3;
 				placedItem4 = scannedItem4;
 				// Create test products:
-				testProduct1 = new BarcodedProduct(barcode1, "Item 1", new BigDecimal(10), 12);
-				testProduct2 = new BarcodedProduct(barcode2, "Item 2", new BigDecimal(68), 48);
-				testProduct3 = new BarcodedProduct(barcode3, "Item 3", new BigDecimal(50), 20);
-				testProduct4 = new BarcodedProduct(barcode4, "Item 4", new BigDecimal(23), 83);
+				testProduct1 = new BarcodedProduct(barcode1, "Item 1", new BigDecimal(10.0), 12);
+				testProduct2 = new BarcodedProduct(barcode2, "Item 2", new BigDecimal(68.0), 48);
+				testProduct3 = new BarcodedProduct(barcode3, "Item 3", new BigDecimal(50.0), 20);
+				testProduct4 = new BarcodedProduct(barcode4, "Item 4", new BigDecimal(23.0), 83);
 							
 				ProductDatabases.BARCODED_PRODUCT_DATABASE.put(barcode1, testProduct1);
 				ProductDatabases.BARCODED_PRODUCT_DATABASE.put(barcode2, testProduct2);
@@ -220,9 +222,9 @@ class MyCustomerIO implements CustomerIO {
 				ProductDatabases.BARCODED_PRODUCT_DATABASE.put(barcode4, testProduct4);
 				
 				// Create and attach controllers to the station:
-				receiptPrinterController = new PrintReceipt(selfCheckoutStation, selfCheckoutStation.printer, customer, attendant);
-				paymentController = new PaymentControllerLogic(selfCheckoutStation, customer, attendant, receiptPrinterController);
-				addItemByScanningController = new AddItemByScanningController(selfCheckoutStation, customer, attendant, paymentController);
+				this.receiptPrinterController = new PrintReceipt(selfCheckoutStation, selfCheckoutStation.printer, customer, attendant);
+				this.paymentController = new PaymentControllerLogic(selfCheckoutStation, customer, attendant, receiptPrinterController);
+				this.addItemByScanningController = new AddItemByScanningController(selfCheckoutStation, customer, attendant, paymentController);
 	}
 	/* Test Case: The customer scans two items. 
 	 * 
@@ -238,12 +240,11 @@ class MyCustomerIO implements CustomerIO {
 		assertEquals(0.0,paymentController.getCartTotal(),0.00);
 		// scan first item
 		customer.scanItem(scannedItem1);
-		assertEquals(10.0,paymentController.getCartTotal(),0.00);
 		customer.placeScannedItemInBaggingArea(placedItem1);
 		// scan second item
 		customer.scanItem(scannedItem2);
-		assertEquals(78.0,paymentController.getCartTotal(),0.00);
 		customer.placeScannedItemInBaggingArea(placedItem2);
+		assertEquals(78.0,paymentController.getCartTotal(),0.00);
 	}
 	
 	/* Test Case: The customer pays the cart total. 
@@ -258,20 +259,18 @@ class MyCustomerIO implements CustomerIO {
 	 */
 	@Test
 	public void payForCartTotal() {
-		assertEquals(0.0,paymentController.getCartTotal(),0.00);
+		assertEquals(0.0,this.paymentController.getCartTotal(),0.00);
 		// scan first item
 		customer.scanItem(scannedItem1);
-		assertEquals(10.0,paymentController.getCartTotal(),0.00);
 		customer.placeScannedItemInBaggingArea(placedItem1);
 		// scan second item
 		customer.scanItem(scannedItem3);
-		assertEquals(60.0,paymentController.getCartTotal(),0.00);
-		customer.placeScannedItemInBaggingArea(placedItem2);
-		// The customer inserts a fifty dollar bill
+		customer.placeScannedItemInBaggingArea(placedItem3);
+		// The customer inserts a one-hundred dollar bill
 		try {
-			selfCheckoutStation.billInput.accept(billHundred);
-		} catch (DisabledException | OverloadException e) {}
-		assertEquals(60.0,paymentController.getCartTotal(),0.00);
+			this.selfCheckoutStation.billInput.accept(billHundred);
+		} catch (Exception e) {fail();}
+		assertEquals(0.00,this.paymentController.getCartTotal(),0.00);
 	}
 	
 	

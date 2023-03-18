@@ -159,7 +159,9 @@ public class AddItemByScanningController implements BarcodeScannerObserver, Elec
 				this.unblockSystem(); // Unblock the system (Step 7)
 			}
 			// If they don't approve, then remain blocked
-			this.blockSystem();
+			else {
+				this.blockSystem();
+			}
 		} else { // If there is no discrepancy then unblock the system
 			this.unblockSystem(); // Step 7, unblock the system 
 		}

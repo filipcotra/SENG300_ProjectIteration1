@@ -11,9 +11,12 @@ package com.autovend.software.test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.math.BigDecimal;
 import java.util.Currency;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -47,7 +50,10 @@ public class AddItemByScanningTest {
 	BarcodedUnit scannedItem;
 	BarcodedUnit placedItem;
 	Boolean customerNotified;
-	
+	final PrintStream originalOut = System.out;
+	ByteArrayOutputStream baos;
+	PrintStream ps;
+	boolean approveFlag;
 	class MyCustomerIO implements CustomerIO {
 		
 		
@@ -81,6 +87,7 @@ public class AddItemByScanningTest {
 		@Override
 		public void notifyPlaceItemCustomerIO() {
 			// TODO Auto-generated method stub
+			System.out.print("Customer Notified");
 			customerNotified = true;
 		}
 
@@ -92,7 +99,7 @@ public class AddItemByScanningTest {
 
 		@Override
 		public boolean approveWeightDiscrepancy() {
-			return true;
+			return approveFlag;
 		}
 
 		@Override
@@ -113,7 +120,10 @@ public class AddItemByScanningTest {
 	 */
 	@Before
 	public void setup() {
-		
+		// Setting up new print stream to catch printed output, used to test terminal output
+		baos = new ByteArrayOutputStream();
+		ps = new PrintStream(baos);
+		System.setOut(ps);		
 		customerNotified = false;
 		barcode = new Barcode(Numeral.three, Numeral.zero, Numeral.one, Numeral.five, Numeral.nine, Numeral.nine, Numeral.two, Numeral.seven);
 		scannedItem = new BarcodedUnit(barcode, 12);
@@ -133,7 +143,30 @@ public class AddItemByScanningTest {
 		
 		addItemByScanningController = new AddItemByScanningController(selfCheckoutStation, customer, 
 				attendant, paymentController);
+		approveFlag = true;
 	}
+	
+	@After
+	public void tearDown() {
+		// Setting up new print stream to catch printed output, used to test terminal output
+		baos = null;
+		ps = null;		
+		customerNotified = null;
+		barcode = null;
+		scannedItem = null;
+		placedItem = null;
+		selfCheckoutStation = null;
+		testProduct = null;
+		
+		customer = null;
+		attendant = null;
+		
+		receiptPrinterController = null;
+		paymentController = null;
+		
+		addItemByScanningController = null;
+	}
+	
 	
 	
 	@Test
@@ -195,6 +228,15 @@ public class AddItemByScanningTest {
 		assertEquals(true, customerNotified);
 	}
 	
+	public void notifyCustomerOnce() {
+		/**
+		 * Step 5: System: Updates the expected weight from the Bagging Area
+		 */
+		customer.scanItem(scannedItem);
+		String expected = "Customer Notified";
+		assertEquals(expected, baos.toString());
+	}
+	
 	@Test
 	public void weightChange() {
 		/**
@@ -239,7 +281,8 @@ public class AddItemByScanningTest {
 	
 	@Test
 	public void weightDiscrepency() {
-		placedItem = new BarcodedUnit(barcode, 15);
+		approveFlag = false;
+		placedItem = new BarcodedUnit(barcode, 15); // Different weight
 		try {
 			selfCheckoutStation.mainScanner.scan(scannedItem);
 			selfCheckoutStation.baggingArea.add(placedItem);
