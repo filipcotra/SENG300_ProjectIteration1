@@ -1,3 +1,11 @@
+/** 
+ * Filip Cotra - 30086750
+ * Khondaker Samin Rashid - 30143490
+ * Nishan Soni - 30147280
+ * Aaron Tigley - 30159927
+ * Zainab Bari - 30154224
+ */
+
 package com.autovend.software.test;
 
 import static org.junit.Assert.assertEquals;
